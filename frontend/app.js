@@ -38,6 +38,11 @@ const seedState = {
       repId: "rep-1",
       customerId: "customer-1",
       deliveryDate: "2026-04-04",
+      paymentTerm: "30 gun",
+      shippingOwner: "Fabrika",
+      reviewStatus: "pending",
+      submissionLabel: "Yeni Siparis",
+      submittedAt: "2026-04-01T09:00:00",
       note: "Sabah sevkiyat tercih ediliyor.",
       createdAt: "2026-03-30T09:00:00",
       updatedAt: "2026-03-30T09:00:00",
@@ -71,6 +76,17 @@ function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+function normalizeOrders() {
+  state.orders = state.orders.map((order) => ({
+    reviewStatus: "pending",
+    submissionLabel: "Yeni Siparis",
+    submittedAt: order.updatedAt || order.createdAt || new Date().toISOString(),
+    reviewedAt: "",
+    revisionSummary: [],
+    ...order
+  }));
+}
+
 function loadSessionUserId() {
   const isAuthenticated = localStorage.getItem(AUTH_KEY) === "true";
   const stored = localStorage.getItem(SESSION_KEY);
@@ -80,6 +96,8 @@ function loadSessionUserId() {
 
   return null;
 }
+
+normalizeOrders();
 
 function saveSessionUserId(userId) {
   currentUserId = userId;
@@ -151,8 +169,90 @@ function formatDate(value) {
   return new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium" }).format(new Date(value));
 }
 
+function formatDateTime(value) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("tr-TR", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(new Date(value));
+}
+
+function isToday(value) {
+  if (!value) {
+    return false;
+  }
+
+  const date = new Date(value);
+  const today = new Date();
+
+  return date.getFullYear() === today.getFullYear()
+    && date.getMonth() === today.getMonth()
+    && date.getDate() === today.getDate();
+}
+
 function createId(prefix) {
   return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+function summarizeOrderChanges(previousOrder, nextPayload) {
+  const changes = [];
+
+  const fieldMap = [
+    { key: "deliveryDate", label: "Teslim tarihi", formatter: formatDate },
+    { key: "paymentTerm", label: "Vade", formatter: (value) => value || "-" },
+    { key: "shippingOwner", label: "Nakliye", formatter: (value) => value || "-" },
+    { key: "note", label: "Not", formatter: (value) => value || "-" }
+  ];
+
+  fieldMap.forEach(({ key, label, formatter }) => {
+    const previousValue = previousOrder[key] || "";
+    const nextValue = nextPayload[key] || "";
+    if (previousValue !== nextValue) {
+      changes.push(`${label}: ${formatter(previousValue)} -> ${formatter(nextValue)}`);
+    }
+  });
+
+  const previousItems = previousOrder.items.map((item) => ({
+    productId: item.productId,
+    quantity: Number(item.quantity),
+    price: Number(item.price)
+  }));
+  const nextItems = nextPayload.items.map((item) => ({
+    productId: item.productId,
+    quantity: Number(item.quantity),
+    price: Number(item.price)
+  }));
+
+  const previousMap = new Map(previousItems.map((item) => [item.productId, item]));
+  const nextMap = new Map(nextItems.map((item) => [item.productId, item]));
+  const productIds = new Set([...previousMap.keys(), ...nextMap.keys()]);
+
+  productIds.forEach((productId) => {
+    const previousItem = previousMap.get(productId);
+    const nextItem = nextMap.get(productId);
+    const productName = getProduct(productId)?.name || "Urun";
+
+    if (!previousItem && nextItem) {
+      changes.push(`Urun eklendi: ${productName} (${nextItem.quantity} adet x ${formatMoney(nextItem.price)})`);
+      return;
+    }
+
+    if (previousItem && !nextItem) {
+      changes.push(`Urun kaldirildi: ${productName}`);
+      return;
+    }
+
+    if (previousItem.quantity !== nextItem.quantity || previousItem.price !== nextItem.price) {
+      changes.push(
+        `${productName}: ${previousItem.quantity} adet / ${formatMoney(previousItem.price)} -> ${nextItem.quantity} adet / ${formatMoney(nextItem.price)}`
+      );
+    }
+  });
+
+  return changes;
 }
 
 function hydrateElements() {
@@ -172,7 +272,8 @@ function hydrateElements() {
   els.assignmentRepSelect = document.getElementById("assignmentRepSelect");
   els.removeCustomerButton = document.getElementById("removeCustomerButton");
   els.customerTable = document.getElementById("customerTable");
-  els.adminOrdersList = document.getElementById("adminOrdersList");
+  els.adminPendingOrdersList = document.getElementById("adminPendingOrdersList");
+  els.adminReviewedOrdersList = document.getElementById("adminReviewedOrdersList");
   els.salesScopeTag = document.getElementById("salesScopeTag");
   els.orderForm = document.getElementById("orderForm");
   els.orderIdInput = document.getElementById("orderIdInput");
@@ -182,6 +283,8 @@ function hydrateElements() {
   els.lineItemTemplate = document.getElementById("lineItemTemplate");
   els.addLineButton = document.getElementById("addLineButton");
   els.deliveryDateInput = document.getElementById("deliveryDateInput");
+  els.paymentTermInput = document.getElementById("paymentTermInput");
+  els.shippingOwnerSelect = document.getElementById("shippingOwnerSelect");
   els.orderNoteInput = document.getElementById("orderNoteInput");
   els.clearOrderButton = document.getElementById("clearOrderButton");
   els.ordersList = document.getElementById("ordersList");
@@ -203,19 +306,29 @@ function populateSelect(select, items, formatter, placeholder) {
 
 function renderMetrics() {
   const currentUser = getCurrentUser();
-  const visibleCustomers = getVisibleCustomers(currentUser);
-  const visibleOrders = getVisibleOrders(currentUser);
-  const visibleDealers = currentUser.role === "admin"
-    ? state.dealers
-    : state.dealers.filter((dealer) => dealer.repId === currentUser.id);
-  const totalRevenue = visibleOrders.reduce((sum, order) => sum + getOrdersTotal(order), 0);
+  let cards;
 
-  const cards = [
-    { label: currentUser.role === "admin" ? "Toplam satici" : "Bagli bayi", value: currentUser.role === "admin" ? getRepUsers().length : visibleDealers.length },
-    { label: "Gorunen musteri", value: visibleCustomers.length },
-    { label: "Siparis sayisi", value: visibleOrders.length },
-    { label: "Toplam ciro", value: formatMoney(totalRevenue) }
-  ];
+  if (currentUser.role === "admin") {
+    const dailyOrders = state.orders.filter((order) => isToday(order.submittedAt));
+    const reviewedOrders = state.orders.filter((order) => order.reviewStatus === "reviewed");
+    const pendingOrders = state.orders.filter((order) => order.reviewStatus !== "reviewed");
+
+    cards = [
+      { label: "Gunluk girilen siparisler", value: dailyOrders.length },
+      { label: "Bakilan siparisler", value: reviewedOrders.length },
+      { label: "Bakilmayan siparisler", value: pendingOrders.length }
+    ];
+  } else {
+    const visibleCustomers = getVisibleCustomers(currentUser);
+    const visibleOrders = getVisibleOrders(currentUser);
+    const visibleDealers = state.dealers.filter((dealer) => dealer.repId === currentUser.id);
+
+    cards = [
+      { label: "Bagli bayi", value: visibleDealers.length },
+      { label: "Gorunen musteri", value: visibleCustomers.length },
+      { label: "Siparis sayisi", value: visibleOrders.length }
+    ];
+  }
 
   els.metricsGrid.innerHTML = cards.map((card) => `
     <article class="metric-card">
@@ -354,6 +467,7 @@ function addLineItem(item = {}) {
 function clearOrderForm() {
   els.orderForm.reset();
   els.orderIdInput.value = "";
+  els.shippingOwnerSelect.value = "Musteri";
   els.orderLines.innerHTML = "";
   addLineItem();
   renderCustomerSnapshot();
@@ -390,6 +504,9 @@ function renderOrdersList() {
           <span>${order.items.length} kalem</span>
           <strong>${formatMoney(total)}</strong>
         </div>
+        <p><strong>Durum:</strong> ${order.reviewStatus === "reviewed" ? "Kontrol edildi" : (order.submissionLabel || "Yeni Siparis")}</p>
+        <p><strong>Vade:</strong> ${order.paymentTerm || "-"}</p>
+        <p><strong>Nakliye:</strong> ${order.shippingOwner || "-"}</p>
         <ul>${itemsMarkup}</ul>
         <p><strong>Not:</strong> ${order.note || "-"}</p>
       </article>
@@ -402,31 +519,61 @@ function renderOrdersList() {
 }
 
 function renderAdminOrdersList() {
-  const orders = [...state.orders].sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt));
+  const orders = [...state.orders].sort((left, right) => new Date(right.submittedAt || right.updatedAt) - new Date(left.submittedAt || left.updatedAt));
+  const pendingOrders = orders.filter((order) => order.reviewStatus !== "reviewed");
+  const reviewedOrders = orders.filter((order) => order.reviewStatus === "reviewed");
 
-  if (!orders.length) {
-    els.adminOrdersList.innerHTML = `<div class="info-card muted-card">Henuz siparis kaydi yok.</div>`;
+  els.adminPendingOrdersList.innerHTML = pendingOrders.length
+    ? pendingOrders.map((order) => renderAdminOrderCard(order, true)).join("")
+    : `<div class="info-card muted-card">Yeni veya revize bekleyen siparis yok.</div>`;
+
+  els.adminReviewedOrdersList.innerHTML = reviewedOrders.length
+    ? reviewedOrders.map((order) => renderAdminOrderCard(order, false)).join("")
+    : `<div class="info-card muted-card">Henuz onaylanan siparis yok.</div>`;
+
+  els.adminPendingOrdersList.querySelectorAll("[data-order-approve]").forEach((button) => {
+    button.addEventListener("click", () => approveOrder(button.dataset.orderApprove));
+  });
+}
+
+function renderAdminOrderCard(order, canApprove) {
+  const customer = byId(state.customers, order.customerId);
+  const rep = byId(state.users, order.repId);
+  const statusClass = order.submissionLabel === "Revize" ? "tag-warning" : "tag-info";
+
+  return `
+    <article class="order-card">
+      <div class="order-card-top">
+        <div>
+          <strong>${customer?.name || "Musteri silinmis"}</strong>
+          <p>${getCompanyName(order.companyId)} - ${rep?.name || "-"}</p>
+        </div>
+        <span class="tag">${formatMoney(getOrdersTotal(order))}</span>
+      </div>
+      <div class="order-card-top">
+        <span class="tag ${statusClass}">${order.submissionLabel || "Yeni Siparis"}</span>
+        ${canApprove ? `<button type="button" data-order-approve="${order.id}">Onayla</button>` : `<span class="tag">Kontrol edildi</span>`}
+      </div>
+      <p>Teslim: ${formatDate(order.deliveryDate)}</p>
+      <p>Vade: ${order.paymentTerm || "-"}</p>
+      <p>Nakliye: ${order.shippingOwner || "-"}</p>
+      <p>Kalem: ${order.items.length}</p>
+      <p>Not: ${order.note || "-"}</p>
+    </article>
+  `;
+}
+
+function approveOrder(orderId) {
+  const order = byId(state.orders, orderId);
+  if (!order) {
     return;
   }
 
-  els.adminOrdersList.innerHTML = orders.map((order) => {
-    const customer = byId(state.customers, order.customerId);
-    const rep = byId(state.users, order.repId);
-    return `
-      <article class="order-card">
-        <div class="order-card-top">
-          <div>
-            <strong>${customer?.name || "Musteri silinmis"}</strong>
-            <p>${getCompanyName(order.companyId)} - ${rep?.name || "-"}</p>
-          </div>
-          <span class="tag">${formatMoney(getOrdersTotal(order))}</span>
-        </div>
-        <p>Teslim: ${formatDate(order.deliveryDate)}</p>
-        <p>Kalem: ${order.items.length}</p>
-        <p>Not: ${order.note || "-"}</p>
-      </article>
-    `;
-  }).join("");
+  order.reviewStatus = "reviewed";
+  order.submissionLabel = "Kontrol Edildi";
+  order.reviewedAt = new Date().toISOString();
+  saveState();
+  renderAll();
 }
 
 function loadOrderIntoForm(orderId) {
@@ -439,6 +586,8 @@ function loadOrderIntoForm(orderId) {
   els.orderIdInput.value = order.id;
   els.orderCustomerSelect.value = order.customerId;
   els.deliveryDateInput.value = order.deliveryDate;
+  els.paymentTermInput.value = order.paymentTerm || "";
+  els.shippingOwnerSelect.value = order.shippingOwner || "Musteri";
   els.orderNoteInput.value = order.note || "";
   els.orderLines.innerHTML = "";
   order.items.forEach((item) => addLineItem(item));
@@ -541,8 +690,11 @@ function handleOrderSubmit(event) {
     repId: currentUser.id,
     customerId,
     deliveryDate: els.deliveryDateInput.value,
+    paymentTerm: els.paymentTermInput.value.trim(),
+    shippingOwner: els.shippingOwnerSelect.value,
     note: els.orderNoteInput.value.trim(),
     items,
+    submittedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
 
@@ -552,11 +704,18 @@ function handleOrderSubmit(event) {
       return;
     }
 
-    Object.assign(existing, payload);
+    Object.assign(existing, payload, {
+      reviewStatus: existing.reviewStatus === "reviewed" ? "pending" : existing.reviewStatus,
+      submissionLabel: existing.reviewStatus === "reviewed" ? "Revize" : (existing.submissionLabel || "Yeni Siparis"),
+      reviewedAt: existing.reviewStatus === "reviewed" ? "" : existing.reviewedAt
+    });
   } else {
     state.orders.push({
       id: createId("order"),
       createdAt: new Date().toISOString(),
+      reviewStatus: "pending",
+      submissionLabel: "Yeni Siparis",
+      reviewedAt: "",
       ...payload
     });
   }

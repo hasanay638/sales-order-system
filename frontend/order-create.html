@@ -8,15 +8,41 @@
 </head>
 <body>
   <div class="page-shell">
+    <header class="brand-bar">
+      <div class="brand-lockup">
+        <span class="brand-mark">Y</span>
+        <div>
+          <strong>Satis Siparis Portali</strong>
+          <p>Bolge bazli satici ve bayi yonetimi</p>
+        </div>
+      </div>
+      <nav class="brand-nav">
+        <span>Kurumsal Yapı</span>
+        <span>Urun Secimi</span>
+        <span>Saha Siparisi</span>
+      </nav>
+    </header>
+
     <header class="hero">
       <div>
         <p class="eyebrow">Saha satisi icin web prototipi</p>
-        <h1>Firma, bolge, satici ve musteri bazli siparis yonetimi</h1>
         <p class="hero-copy">
           Saticilar sadece kendilerine atanmis musteri ve bayileri gorur. Admin ise
           musteri atamalarini, kayitlari ve tum siparisleri tek ekrandan yonetir.
         </p>
         <a class="portal-link" href="./index.html">Giris ekranina don</a>
+        <div class="hero-feature-grid">
+          <article class="hero-feature-card">
+            <span class="eyebrow">Yonetim</span>
+            <strong>Admin tum musterileri ve siparisleri izler</strong>
+            <p>Atama, guncelleme ve genel operasyon takibi tek panelde toplanir.</p>
+          </article>
+          <article class="hero-feature-card">
+            <span class="eyebrow">Saha</span>
+            <strong>Satici sadece kendi portfoyunu gorur</strong>
+            <p>Bayi ve musteri karmasasi olmadan hizli siparis olusturur.</p>
+          </article>
+        </div>
       </div>
 
       <div class="session-card">
@@ -98,10 +124,23 @@
           <div id="customerTable" class="table-wrap"></div>
         </article>
 
-        <article class="subpanel">
-          <h3>Tum siparisler</h3>
-          <div id="adminOrdersList" class="orders-list"></div>
-        </article>
+        <section class="admin-orders-grid">
+          <article class="subpanel">
+            <div class="panel-title-row">
+              <h3>Yeni siparisler</h3>
+              <span class="tag">Onay bekleyenler</span>
+            </div>
+            <div id="adminPendingOrdersList" class="orders-list"></div>
+          </article>
+
+          <article class="subpanel">
+            <div class="panel-title-row">
+              <h3>Kontrolu yapilan siparisler</h3>
+              <span class="tag">Onaylananlar</span>
+            </div>
+            <div id="adminReviewedOrdersList" class="orders-list"></div>
+          </article>
+        </section>
       </section>
 
       <section id="salesPanel" class="panel hidden">
@@ -138,6 +177,21 @@
                 Teslim tarihi
                 <input id="deliveryDateInput" type="date" required>
               </label>
+
+              <div class="sales-extra-grid">
+                <label>
+                  Vade
+                  <input id="paymentTermInput" type="text" placeholder="Ornek: 30 gun">
+                </label>
+
+                <label>
+                  Nakliye kime ait
+                  <select id="shippingOwnerSelect">
+                    <option value="Musteri">Musteri</option>
+                    <option value="Fabrika">Fabrika</option>
+                  </select>
+                </label>
+              </div>
 
               <label>
                 Ozel not
