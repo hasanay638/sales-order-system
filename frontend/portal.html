@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Satici Siparis Portali</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="portal-body">
+  <div class="portal-shell">
+    <section class="portal-hero">
+      <div class="portal-copy">
+        <p class="eyebrow">Mobil uyumlu saha portali</p>
+        <h1>Saticilarin siparislerini sahada hizla girebildigi portal</h1>
+        <p>
+          Satici kendi musterilerini gorur, envanterden urun secer, siparis olusturur
+          ve gecmis siparislerini duzenler. Admin de ayni portalden atamalari ve genel
+          tabloyu yonetebilir.
+        </p>
+        <div class="portal-points">
+          <span class="tag">Musteri bazli yetki</span>
+          <span class="tag">Mobil uyumlu</span>
+          <span class="tag">Siparis guncelleme</span>
+        </div>
+      </div>
+
+      <div class="login-panel">
+        <p class="eyebrow">Portal girisi</p>
+        <h2>Rol sec ve devam et</h2>
+        <p class="muted">Demo kullanicilar ile role gore portala gecis yapabilirsiniz.</p>
+        <div id="portalUserCards" class="user-card-list"></div>
+      </div>
+    </section>
+
+    <section class="portal-preview">
+      <div class="panel-title-row">
+        <div>
+          <p class="eyebrow">Kullanim akisi</p>
+          <h2>Portalda neler var</h2>
+        </div>
+      </div>
+      <div class="metrics-grid portal-flow-grid">
+        <article class="metric-card">
+          <span class="eyebrow">1. Adim</span>
+          <strong>Musteri sec</strong>
+          <p class="muted">Satici sadece kendisine atanmis musterileri listede gorur.</p>
+        </article>
+        <article class="metric-card">
+          <span class="eyebrow">2. Adim</span>
+          <strong>Urun ekle</strong>
+          <p class="muted">Envanterden urun secilir, adet ve fiyat girilir.</p>
+        </article>
+        <article class="metric-card">
+          <span class="eyebrow">3. Adim</span>
+          <strong>Teslim tarihi</strong>
+          <p class="muted">Not ve teslim tarihi eklenerek siparis tamamlanir.</p>
+        </article>
+        <article class="metric-card">
+          <span class="eyebrow">4. Adim</span>
+          <strong>Guncelle</strong>
+          <p class="muted">Satici gecmis siparisini acip duzenleyebilir.</p>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const portalSeedUsers = [
+      { id: "admin-1", name: "Merkez Admin", role: "Admin", detail: "Tum firmalar ve tum siparisler" },
+      { id: "rep-1", name: "Ayse Demir", role: "Satici", detail: "Ege bolgesi musterileri" },
+      { id: "rep-2", name: "Mehmet Kaya", role: "Satici", detail: "Ic Anadolu bolgesi musterileri" },
+      { id: "rep-3", name: "Elif Acar", role: "Satici", detail: "Marmara bolgesi musterileri" }
+    ];
+
+    const cardRoot = document.getElementById("portalUserCards");
+
+    cardRoot.innerHTML = portalSeedUsers.map((user) => `
+      <button class="user-card" data-user-id="${user.id}" type="button">
+        <span class="user-card-role">${user.role}</span>
+        <strong>${user.name}</strong>
+        <span class="muted">${user.detail}</span>
+      </button>
+    `).join("");
+
+    cardRoot.querySelectorAll("[data-user-id]").forEach((button) => {
+      button.addEventListener("click", () => {
+        localStorage.setItem("sales-order-system-user", button.dataset.userId);
+        window.location.href = "./order-create.html";
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "sales-order-system-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Satis ekibi siparis portali",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

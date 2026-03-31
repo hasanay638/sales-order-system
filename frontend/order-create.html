@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Satis Siparis Sistemi</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Saha satisi icin web prototipi</p>
+        <h1>Firma, bolge, satici ve musteri bazli siparis yonetimi</h1>
+        <p class="hero-copy">
+          Saticilar sadece kendilerine atanmis musteri ve bayileri gorur. Admin ise
+          musteri atamalarini, kayitlari ve tum siparisleri tek ekrandan yonetir.
+        </p>
+        <a class="portal-link" href="./index.html">Giris ekranina don</a>
+      </div>
+
+      <div class="session-card">
+        <p class="eyebrow">Oturum bilgisi</p>
+        <h3 id="sessionUserName">Kullanici</h3>
+        <p id="sessionMeta" class="muted"></p>
+        <div class="button-row">
+          <button id="resetDataButton" class="ghost-button" type="button">Ornek veriyi sifirla</button>
+          <button id="logoutButton" class="ghost-button" type="button">Cikis yap</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="panel metrics-panel">
+        <div class="panel-title-row">
+          <div>
+            <p class="eyebrow">Genel bakis</p>
+            <h2>Canli ozet</h2>
+          </div>
+        </div>
+        <div id="metricsGrid" class="metrics-grid"></div>
+      </section>
+
+      <section id="adminPanel" class="panel hidden">
+        <div class="panel-title-row">
+          <div>
+            <p class="eyebrow">Admin alani</p>
+            <h2>Musteri ve satici atamalari</h2>
+          </div>
+          <span class="tag">Tum firmalar</span>
+        </div>
+
+        <div class="admin-grid">
+          <article class="subpanel">
+            <h3>Yeni musteri ekle</h3>
+            <form id="customerForm" class="stack-form">
+              <label>
+                Musteri adi
+                <input id="customerNameInput" name="customerName" type="text" placeholder="Ornek: Ege Tarim" required>
+              </label>
+              <label>
+                Firma
+                <select id="customerCompanySelect" name="companyId" required></select>
+              </label>
+              <label>
+                Bayi
+                <select id="customerDealerSelect" name="dealerId" required></select>
+              </label>
+              <label>
+                Sorumlu satici
+                <select id="customerRepSelect" name="repId" required></select>
+              </label>
+              <button type="submit">Musteriyi kaydet</button>
+            </form>
+          </article>
+
+          <article class="subpanel">
+            <h3>Atama guncelle veya kaldir</h3>
+            <form id="assignmentForm" class="stack-form">
+              <label>
+                Musteri sec
+                <select id="assignmentCustomerSelect" name="customerId" required></select>
+              </label>
+              <label>
+                Yeni satici
+                <select id="assignmentRepSelect" name="repId" required></select>
+              </label>
+              <div class="button-row">
+                <button type="submit">Atamayi guncelle</button>
+                <button id="removeCustomerButton" class="danger-button" type="button">Musteriyi kaldir</button>
+              </div>
+            </form>
+          </article>
+        </div>
+
+        <article class="subpanel">
+          <h3>Musteri listesi</h3>
+          <div id="customerTable" class="table-wrap"></div>
+        </article>
+
+        <article class="subpanel">
+          <h3>Tum siparisler</h3>
+          <div id="adminOrdersList" class="orders-list"></div>
+        </article>
+      </section>
+
+      <section id="salesPanel" class="panel hidden">
+        <div class="panel-title-row">
+          <div>
+            <p class="eyebrow">Satis paneli</p>
+            <h2>Kendi musterilerine siparis gir</h2>
+          </div>
+          <span id="salesScopeTag" class="tag"></span>
+        </div>
+
+        <div class="sales-layout">
+          <article class="subpanel">
+            <h3>Siparis formu</h3>
+            <form id="orderForm" class="stack-form">
+              <input id="orderIdInput" type="hidden">
+
+              <label>
+                Musteri sec
+                <select id="orderCustomerSelect" required></select>
+              </label>
+
+              <div id="customerSnapshot" class="info-card muted-card">
+                Musteri secildikten sonra bayi ve firma bilgisi burada gorunur.
+              </div>
+
+              <div class="order-lines-header">
+                <h4>Siparis icerigi</h4>
+                <button id="addLineButton" class="ghost-button" type="button">Satir ekle</button>
+              </div>
+              <div id="orderLines" class="line-items disabled"></div>
+
+              <label>
+                Teslim tarihi
+                <input id="deliveryDateInput" type="date" required>
+              </label>
+
+              <label>
+                Ozel not
+                <textarea id="orderNoteInput" rows="4" placeholder="Sevkiyat, odeme veya operasyon notu"></textarea>
+              </label>
+
+              <div class="button-row">
+                <button type="submit">Siparisi kaydet</button>
+                <button id="clearOrderButton" class="ghost-button" type="button">Formu temizle</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="subpanel">
+            <h3>Gecmis siparisler</h3>
+            <div id="ordersList" class="orders-list"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <template id="lineItemTemplate">
+    <div class="line-item">
+      <label>
+        Urun
+        <select class="line-product" required></select>
+      </label>
+      <label>
+        Adet
+        <input class="line-quantity" type="number" min="1" step="1" required>
+      </label>
+      <label>
+        Birim fiyat
+        <input class="line-price" type="number" min="0" step="0.01" required>
+      </label>
+      <button class="line-remove danger-button" type="button">Sil</button>
+    </div>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>
