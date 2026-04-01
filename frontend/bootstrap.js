@@ -12,7 +12,8 @@ window.BOOTSTRAP_STATE = {
       "username": "admin",
       "role": "admin",
       "companyId": "company-yemcibey",
-      "region": "Tum Bolgeler"
+      "region": "Tum Bolgeler",
+      "salesmanCode": "ADMIN"
     },
     {
       "id": "rep-duran.ozcifci",
@@ -20,7 +21,8 @@ window.BOOTSTRAP_STATE = {
       "username": "duran.ozcifci",
       "role": "sales",
       "companyId": "company-yemcibey",
-      "region": "SİVAS"
+      "region": "SİVAS",
+      "salesmanCode": "D.OZCIFCI"
     },
     {
       "id": "rep-erkan.turkoglu",
@@ -28,7 +30,8 @@ window.BOOTSTRAP_STATE = {
       "username": "erkan.turkoglu",
       "role": "sales",
       "companyId": "company-yemcibey",
-      "region": "BATMAN"
+      "region": "BATMAN",
+      "salesmanCode": "E.TURKOGLU"
     },
     {
       "id": "rep-hasan.ay",
@@ -36,7 +39,8 @@ window.BOOTSTRAP_STATE = {
       "username": "hasan.ay",
       "role": "sales",
       "companyId": "company-yemcibey",
-      "region": "MERSİN"
+      "region": "MERSİN",
+      "salesmanCode": "H.AY"
     },
     {
       "id": "rep-ibrahim.tunc",
@@ -44,7 +48,8 @@ window.BOOTSTRAP_STATE = {
       "username": "ibrahim.tunc",
       "role": "sales",
       "companyId": "company-yemcibey",
-      "region": "SİVAS"
+      "region": "SİVAS",
+      "salesmanCode": "I.TUNC"
     },
     {
       "id": "rep-kerim.turkay",
@@ -52,7 +57,8 @@ window.BOOTSTRAP_STATE = {
       "username": "kerim.turkay",
       "role": "sales",
       "companyId": "company-yemcibey",
-      "region": "NİĞDE"
+      "region": "NİĞDE",
+      "salesmanCode": "K.TURKAY"
     },
     {
       "id": "rep-melih.can.pisirici",
@@ -60,7 +66,8 @@ window.BOOTSTRAP_STATE = {
       "username": "melih.can.pisirici",
       "role": "sales",
       "companyId": "company-yemcibey",
-      "region": "MERSİN"
+      "region": "MERSİN",
+      "salesmanCode": "M.PISIRICI"
     }
   ],
   "dealers": [
@@ -673,7 +680,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-sivas.altinyayla.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "SİVAS",
-      "district": "ALTINYAYLA"
+      "district": "ALTINYAYLA",
+      "erpCode": "120.01.Y.58.009"
     },
     {
       "id": "customer-yukselen.yem.ve.hayvancilik.ticaret.limited.sirketi.kirsehir.mucur.duran.ozcifci",
@@ -682,7 +690,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kirsehir.mucur.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "KIRŞEHİR",
-      "district": "MUCUR"
+      "district": "MUCUR",
+      "erpCode": "120.01.Y.40.004"
     },
     {
       "id": "customer-seha.hububat.tarim.urunleri.sanayi.ve.ticaret.limited.sirketi.aksaray.merkez.duran.ozcifci",
@@ -691,7 +700,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-aksaray.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "AKSARAY",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.68.006"
     },
     {
       "id": "customer-yusuf.karatas.yozgat.kadisehri.duran.ozcifci",
@@ -700,7 +710,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-yozgat.kadisehri.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "YOZGAT",
-      "district": "KADIŞEHRİ"
+      "district": "KADIŞEHRİ",
+      "erpCode": "120.01.Y.66.008"
     },
     {
       "id": "customer-arifoglu.hayvancilik.yem.tarim.gida.ins.tic.ve.san.ltd.sti.kirsehir.merkez.duran.ozcifci",
@@ -709,7 +720,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kirsehir.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "KIRŞEHİR",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.40.010"
     },
     {
       "id": "customer-tolgahan.ozturk.aksaray.merkez.duran.ozcifci",
@@ -718,7 +730,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-aksaray.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "AKSARAY",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.68.021"
     },
     {
       "id": "customer-emre.yapi.market.osman.azimetli.yozgat.cayiralan.duran.ozcifci",
@@ -727,7 +740,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-yozgat.cayiralan.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "YOZGAT",
-      "district": "ÇAYIRALAN"
+      "district": "ÇAYIRALAN",
+      "erpCode": "120.01.Y.66.004"
     },
     {
       "id": "customer-ismail.dinc.aksaray.guzelyurt.duran.ozcifci",
@@ -736,7 +750,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-aksaray.guzelyurt.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "AKSARAY",
-      "district": "GÜZELYURT"
+      "district": "GÜZELYURT",
+      "erpCode": "120.01.Y.68.022"
     },
     {
       "id": "customer-sinirli.sorumlu.bor.pancar.ekicileri.kooperatifi.nigde.bor.duran.ozcifci",
@@ -745,7 +760,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nigde.bor.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "NİĞDE",
-      "district": "BOR"
+      "district": "BOR",
+      "erpCode": "120.01.Y.51.011"
     },
     {
       "id": "customer-kendirli.ticaret.mucahit.kendir.nevsehir.derinkuyu.duran.ozcifci",
@@ -754,7 +770,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nevsehir.derinkuyu.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "NEVŞEHİR",
-      "district": "DERİNKUYU"
+      "district": "DERİNKUYU",
+      "erpCode": "120.01.Y.50.004"
     },
     {
       "id": "customer-besim.aslan.ogullari.un.ve.gida.sanayi.anonim.sirketi.nevsehir.hacibektas.duran.ozcifci",
@@ -763,7 +780,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nevsehir.hacibektas.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "NEVŞEHİR",
-      "district": "HACIBEKTAŞ"
+      "district": "HACIBEKTAŞ",
+      "erpCode": "120.01.Y.50.009"
     },
     {
       "id": "customer-ernig.sut.ve.sut.urunleri.tarim.hayvancilik.ins.akaryakit.nak.tic.ve.san.nigde.merkez.duran.ozcifci",
@@ -772,7 +790,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nigde.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "NİĞDE",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.51.013"
     },
     {
       "id": "customer-derfa.tarim.hayvancilik.gida.ins.san.ve.tic.ltd.sti.kirsehir.merkez.duran.ozcifci",
@@ -781,7 +800,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kirsehir.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "KIRŞEHİR",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.40.009"
     },
     {
       "id": "customer-mehmet.mustafa.akyol.kirsehir.merkez.duran.ozcifci",
@@ -790,7 +810,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kirsehir.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "KIRŞEHİR",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.40.007"
     },
     {
       "id": "customer-mehmet.guney.guney.un.degirmeni.nevsehir.kaymakli.duran.ozcifci",
@@ -799,7 +820,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nevsehir.kaymakli.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "NEVŞEHİR",
-      "district": "KAYMAKLI"
+      "district": "KAYMAKLI",
+      "erpCode": "120.01.Y.50.007"
     },
     {
       "id": "customer-vehbi.solak.arifogullari.hayvancilik.kirsehir.merkez.duran.ozcifci",
@@ -808,7 +830,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kirsehir.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "KIRŞEHİR",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.40.005"
     },
     {
       "id": "customer-mehmet.avsar.nigde.duran.ozcifci",
@@ -817,7 +840,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nigde.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "NİĞDE",
-      "district": ""
+      "district": "",
+      "erpCode": "120.01.Y.51.003"
     },
     {
       "id": "customer-savas.demirbas.yagmur.sut.ve.yem.tic.nigde.merkez.duran.ozcifci",
@@ -826,7 +850,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nigde.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "NİĞDE",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.51.009"
     },
     {
       "id": "customer-sonmez.tarim.emrah.sonmez.nigde.merkez.duran.ozcifci",
@@ -835,7 +860,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nigde.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "NİĞDE",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.51.001"
     },
     {
       "id": "customer-izzetler.nakliyat.taahhut.ticaret.limited.sirketi.aksaray.merkez.duran.ozcifci",
@@ -844,7 +870,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-aksaray.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "AKSARAY",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.68.007"
     },
     {
       "id": "customer-aksaray.ucler.sut.ve.yem.sanayi.ve.ticaret.limited.sirketi.aksaray.merkez.duran.ozcifci",
@@ -853,7 +880,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-aksaray.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "AKSARAY",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.68.015"
     },
     {
       "id": "customer-unver.akaryakit.tarim.gida.insaat.sanayi.ve.ticaret.limited.sirketi.aksaray.merkez.duran.ozcifci",
@@ -862,7 +890,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-aksaray.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "AKSARAY",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.68.017"
     },
     {
       "id": "customer-ertat.besicilik.gida.sanayi.ve.ticaret.anonim.sirketi.aksaray.ortakoy.duran.ozcifci",
@@ -871,7 +900,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-aksaray.ortakoy.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "AKSARAY",
-      "district": "ORTAKÖY"
+      "district": "ORTAKÖY",
+      "erpCode": "120.01.Y.68.013"
     },
     {
       "id": "customer-kutas.tarim.hayvancilik.ve.gida.sanayi.ticaret.limited.sirketi.aksaray.ortakoy.duran.ozcifci",
@@ -880,7 +910,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-aksaray.ortakoy.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "AKSARAY",
-      "district": "ORTAKÖY"
+      "district": "ORTAKÖY",
+      "erpCode": "120.01.Y.68.014"
     },
     {
       "id": "customer-sokel.sut.yem.gida.tarim.hayvancilik.tasimacilik.sanayi.ve.ticaret.limited.sirketi.aksaray.eskil.duran.ozcifci",
@@ -889,7 +920,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-aksaray.eskil.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "AKSARAY",
-      "district": "ESKİL"
+      "district": "ESKİL",
+      "erpCode": "120.01.Y.68.018"
     },
     {
       "id": "customer-uguray.sut.anonim.sirketi.aksaray.merkez.duran.ozcifci",
@@ -898,7 +930,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-aksaray.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "AKSARAY",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.68.009"
     },
     {
       "id": "customer-milkbay.gida.sanayi.ve.ticaret.limited.sirketi.aksaray.merkez.duran.ozcifci",
@@ -907,7 +940,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-aksaray.merkez.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "AKSARAY",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.68.016"
     },
     {
       "id": "customer-halil.ay.aydinlar.tarim.batman.merkez.erkan.turkoglu",
@@ -916,7 +950,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-batman.merkez.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "BATMAN",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.72.003"
     },
     {
       "id": "customer-difa.gida.insaat.yem.tarim.urunleri.ticaret.limited.sirketi.diyarbakir.yenisehir.erkan.turkoglu",
@@ -925,7 +960,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-diyarbakir.yenisehir.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "DİYARBAKIR",
-      "district": "YENİŞEHİR"
+      "district": "YENİŞEHİR",
+      "erpCode": "120.01.Y.21.015"
     },
     {
       "id": "customer-mehmet.emin.akgul.diyarbakir.bismil.erkan.turkoglu",
@@ -934,7 +970,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-diyarbakir.bismil.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "DİYARBAKIR",
-      "district": "BİSMİL"
+      "district": "BİSMİL",
+      "erpCode": "120.01.Y.21.016"
     },
     {
       "id": "customer-ayka.enerji.tarim.hayvancilik.sut.urunleri.ticaret.ve.sanayi.limited.sirketi.kahramanmaras.afsin.erkan.turkoglu",
@@ -943,7 +980,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kahramanmaras.afsin.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "KAHRAMANMARAŞ",
-      "district": "AFŞİN"
+      "district": "AFŞİN",
+      "erpCode": "120.01.Y.46.020"
     },
     {
       "id": "customer-rahmi.boyraz.kahramanmaras.elbistan.erkan.turkoglu",
@@ -952,7 +990,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kahramanmaras.elbistan.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "KAHRAMANMARAŞ",
-      "district": "ELBİSTAN"
+      "district": "ELBİSTAN",
+      "erpCode": "120.01.Y.46.016"
     },
     {
       "id": "customer-abbasoglu.lsm.icecek.gida.insaat.sanayi.ticaret.limited.sirketi.kars.akyaka.erkan.turkoglu",
@@ -961,7 +1000,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kars.akyaka.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "KARS",
-      "district": "AKYAKA"
+      "district": "AKYAKA",
+      "erpCode": "120.01.Y.36.001"
     },
     {
       "id": "customer-oz.solaklar.ticaret.adnan.solak.batman.merkez.erkan.turkoglu",
@@ -970,7 +1010,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-batman.merkez.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "BATMAN",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.72.002"
     },
     {
       "id": "customer-mehmet.capar.diyarbakir.baglar.erkan.turkoglu",
@@ -979,7 +1020,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-diyarbakir.baglar.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "DİYARBAKIR",
-      "district": "BAĞLAR"
+      "district": "BAĞLAR",
+      "erpCode": "120.01.Y.21.014"
     },
     {
       "id": "customer-mustafa.demir.kahramanmaras.elbistan.erkan.turkoglu",
@@ -988,7 +1030,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kahramanmaras.elbistan.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "KAHRAMANMARAŞ",
-      "district": "ELBİSTAN"
+      "district": "ELBİSTAN",
+      "erpCode": "120.01.Y.46.009"
     },
     {
       "id": "customer-kirkgecit.market.nuray.kirkgecit.kahramanmaras.onikisubat.erkan.turkoglu",
@@ -997,7 +1040,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kahramanmaras.onikisubat.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "KAHRAMANMARAŞ",
-      "district": "ONİKİŞUBAT"
+      "district": "ONİKİŞUBAT",
+      "erpCode": "120.01.Y.46.012"
     },
     {
       "id": "customer-cebrail.ozdemir.kahramanmaras.afsin.erkan.turkoglu",
@@ -1006,7 +1050,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kahramanmaras.afsin.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "KAHRAMANMARAŞ",
-      "district": "AFŞİN"
+      "district": "AFŞİN",
+      "erpCode": "120.01.Y.46.015"
     },
     {
       "id": "customer-gurcan.tozluyurt.sivas.gurun.erkan.turkoglu",
@@ -1015,7 +1060,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-sivas.gurun.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "SİVAS",
-      "district": "GÜRÜN"
+      "district": "GÜRÜN",
+      "erpCode": "120.01.Y.58.004"
     },
     {
       "id": "customer-abuzer.kar.tarim.urunleri.gida.nak.ins.hayvancilik.san.ve.tic.limited.sirketi.malatya.yesilyurt.erkan.turkoglu",
@@ -1024,7 +1070,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-malatya.yesilyurt.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "MALATYA",
-      "district": "YEŞİLYURT"
+      "district": "YEŞİLYURT",
+      "erpCode": "120.01.Y.44.008"
     },
     {
       "id": "customer-gulce.gida.ins.nak.tekstil.turz.san.ve.tic.a.s.tl.mardin.merkez.erkan.turkoglu",
@@ -1033,7 +1080,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mardin.merkez.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "MARDİN",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.33.47.020"
     },
     {
       "id": "customer-osman.dolas.adiyaman.kahta.erkan.turkoglu",
@@ -1042,7 +1090,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-adiyaman.kahta.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "ADIYAMAN",
-      "district": "KAHTA"
+      "district": "KAHTA",
+      "erpCode": "120.01.Y.02.004"
     },
     {
       "id": "customer-d.y.r.21.insaat.limited.sirketi.diyarbakir.yenisehir.erkan.turkoglu",
@@ -1051,7 +1100,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-diyarbakir.yenisehir.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "DİYARBAKIR",
-      "district": "YENİŞEHİR"
+      "district": "YENİŞEHİR",
+      "erpCode": "120.01.Y.21.012"
     },
     {
       "id": "customer-ozdemir.ticaret.ayhan.ozdemir.tl.kahramanmaras.afsin.erkan.turkoglu",
@@ -1060,7 +1110,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kahramanmaras.afsin.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "KAHRAMANMARAŞ",
-      "district": "AFŞİN"
+      "district": "AFŞİN",
+      "erpCode": "120.01.Y.46.014"
     },
     {
       "id": "customer-van.diyar.gida.limited.sirketi.van.edremit.erkan.turkoglu",
@@ -1069,7 +1120,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-van.edremit.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "VAN",
-      "district": "EDREMİT"
+      "district": "EDREMİT",
+      "erpCode": "120.01.Y.65.0002"
     },
     {
       "id": "customer-timurogullari.tarim.hayvancilik.insaat.sanayi.ve.ticaret.limited.sirketi.elazig.merkez.erkan.turkoglu",
@@ -1078,7 +1130,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-elazig.merkez.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "ELAZIĞ",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.23.005"
     },
     {
       "id": "customer-onbasi.tar.tas.gida.ins.hay.san.tic.ltd.sti.sanliurfa.siverek.erkan.turkoglu",
@@ -1087,7 +1140,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-sanliurfa.siverek.erkan.turkoglu",
       "repId": "rep-erkan.turkoglu",
       "city": "ŞANLIURFA",
-      "district": "SİVEREK"
+      "district": "SİVEREK",
+      "erpCode": "120.01.Y.63.007"
     },
     {
       "id": "customer-abdullah.sener.sut.yem.nakliye.ticaret.ve.sanayi.limited.sirketi.nigde.ciftlik.duran.ozcifci",
@@ -1096,7 +1150,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nigde.ciftlik.duran.ozcifci",
       "repId": "rep-duran.ozcifci",
       "city": "NİĞDE",
-      "district": "ÇİFTLİK"
+      "district": "ÇİFTLİK",
+      "erpCode": "120.01.Y.51.005"
     },
     {
       "id": "customer-hso.global.tarim.urunleri.dayanikli.tuketim.mallari.anonim.sirketi.mersin.erdemli.hasan.ay",
@@ -1105,7 +1160,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.erdemli.hasan.ay",
       "repId": "rep-hasan.ay",
       "city": "MERSİN",
-      "district": "ERDEMLİ"
+      "district": "ERDEMLİ",
+      "erpCode": "120.01.Y.33.039"
     },
     {
       "id": "customer-fidan.grup.lojistik.hayvancilik.gida.urunleri.sanayi.ve.ticaret.limited.sirketi.mersin.mezitli.hasan.ay",
@@ -1114,7 +1170,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.mezitli.hasan.ay",
       "repId": "rep-hasan.ay",
       "city": "MERSİN",
-      "district": "MEZİTLİ"
+      "district": "MEZİTLİ",
+      "erpCode": "120.01.Y.33.020"
     },
     {
       "id": "customer-hmt.biyogaz.hayvancilik.tarim.gida.insaat.sanayi.ve.ticaret.anonim.sirketi.adana.saricam.hasan.ay",
@@ -1123,7 +1180,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-adana.saricam.hasan.ay",
       "repId": "rep-hasan.ay",
       "city": "ADANA",
-      "district": "SARIÇAM"
+      "district": "SARIÇAM",
+      "erpCode": "120.01.Y.01.023"
     },
     {
       "id": "customer-feride.tekin.feridenin.ciftligi.sut.ve.sut.urunleri.mersin.toroslar.hasan.ay",
@@ -1132,7 +1190,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.toroslar.hasan.ay",
       "repId": "rep-hasan.ay",
       "city": "MERSİN",
-      "district": "TOROSLAR"
+      "district": "TOROSLAR",
+      "erpCode": "120.01.Y.33.041"
     },
     {
       "id": "customer-yasin.karaman.mersin.akdeniz.hasan.ay",
@@ -1141,7 +1200,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.akdeniz.hasan.ay",
       "repId": "rep-hasan.ay",
       "city": "MERSİN",
-      "district": "AKDENİZ"
+      "district": "AKDENİZ",
+      "erpCode": "120.01.Y.33.032"
     },
     {
       "id": "customer-yedi.kardesler.restoran.sanayi.ve.ticaret.limited.sirketi.mersin.mezitli.hasan.ay",
@@ -1150,7 +1210,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.mezitli.hasan.ay",
       "repId": "rep-hasan.ay",
       "city": "MERSİN",
-      "district": "MEZİTLİ"
+      "district": "MEZİTLİ",
+      "erpCode": "120.01.Y.33.033"
     },
     {
       "id": "customer-kurun.kardesler.tarim.hayvancilik.sanayi.ve.ticaret.limited.sirketi.konya.eregli.hasan.ay",
@@ -1159,7 +1220,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-konya.eregli.hasan.ay",
       "repId": "rep-hasan.ay",
       "city": "KONYA",
-      "district": "EREĞLİ"
+      "district": "EREĞLİ",
+      "erpCode": "120.01.Y.42.033"
     },
     {
       "id": "customer-levent.unsal.yem.sanayi.ve.ticaret.anonim.sirketi.adana.seyhan.hasan.ay",
@@ -1168,7 +1230,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-adana.seyhan.hasan.ay",
       "repId": "rep-hasan.ay",
       "city": "ADANA",
-      "district": "SEYHAN"
+      "district": "SEYHAN",
+      "erpCode": "120.01.Y.01.016"
     },
     {
       "id": "customer-ozturkler.sut.urun.hayvan.tarm.gida.ins.maki.san.ve.tic.ltd.sti.sivas.sarkisla.ibrahim.tunc",
@@ -1177,7 +1240,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-sivas.sarkisla.ibrahim.tunc",
       "repId": "rep-ibrahim.tunc",
       "city": "SİVAS",
-      "district": "ŞARKIŞLA"
+      "district": "ŞARKIŞLA",
+      "erpCode": "120.01.Y.58.011"
     },
     {
       "id": "customer-sebahattin.dogan.sivas.merkez.ibrahim.tunc",
@@ -1186,7 +1250,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-sivas.merkez.ibrahim.tunc",
       "repId": "rep-ibrahim.tunc",
       "city": "SİVAS",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.58.006"
     },
     {
       "id": "customer-duran.delisoy.kayseri.sarioglan.ibrahim.tunc",
@@ -1195,7 +1260,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kayseri.sarioglan.ibrahim.tunc",
       "repId": "rep-ibrahim.tunc",
       "city": "KAYSERİ",
-      "district": "SARIOĞLAN"
+      "district": "SARIOĞLAN",
+      "erpCode": "120.01.Y.38.012"
     },
     {
       "id": "customer-akbulut.zahirecilik.tarim.urunleri.akaryakit.nakliye.sanayi.ve.ticaret.limited.sirketi.yozgat.sorgun.ibrahim.tunc",
@@ -1204,7 +1270,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-yozgat.sorgun.ibrahim.tunc",
       "repId": "rep-ibrahim.tunc",
       "city": "YOZGAT",
-      "district": "SORGUN"
+      "district": "SORGUN",
+      "erpCode": "120.01.Y.66.009"
     },
     {
       "id": "customer-mehmet.ciftci.kayseri.develi.ibrahim.tunc",
@@ -1213,7 +1280,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kayseri.develi.ibrahim.tunc",
       "repId": "rep-ibrahim.tunc",
       "city": "KAYSERİ",
-      "district": "DEVELİ"
+      "district": "DEVELİ",
+      "erpCode": "120.01.Y.38.002"
     },
     {
       "id": "customer-orhan.sahin.yozgat.sorgun.ibrahim.tunc",
@@ -1222,7 +1290,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-yozgat.sorgun.ibrahim.tunc",
       "repId": "rep-ibrahim.tunc",
       "city": "YOZGAT",
-      "district": "SORGUN"
+      "district": "SORGUN",
+      "erpCode": "120.01.Y.66.003"
     },
     {
       "id": "customer-mehmet.toker.demir.celik.ve.tarim.urunleri.sanayi.ticaret.limited.sirketi.kayseri.develi.ibrahim.tunc",
@@ -1231,7 +1300,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kayseri.develi.ibrahim.tunc",
       "repId": "rep-ibrahim.tunc",
       "city": "KAYSERİ",
-      "district": "DEVELİ"
+      "district": "DEVELİ",
+      "erpCode": "120.01.Y.38.010"
     },
     {
       "id": "customer-ornek.hububat.tarim.urunleri.sanayi.ve.ticaret.limited.sirketi.nevsehir.avanos.ibrahim.tunc",
@@ -1240,7 +1310,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nevsehir.avanos.ibrahim.tunc",
       "repId": "rep-ibrahim.tunc",
       "city": "NEVŞEHİR",
-      "district": "AVANOS"
+      "district": "AVANOS",
+      "erpCode": "120.01.Y.50.005"
     },
     {
       "id": "customer-hasan.ozcay.tl.kayseri.kocasinan.ibrahim.tunc",
@@ -1249,7 +1320,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-kayseri.kocasinan.ibrahim.tunc",
       "repId": "rep-ibrahim.tunc",
       "city": "KAYSERİ",
-      "district": "KOCASİNAN"
+      "district": "KOCASİNAN",
+      "erpCode": "120.01.Y.38.001"
     },
     {
       "id": "customer-haci.mahmut.unkesen.nigde.ulukisla.kerim.turkay",
@@ -1258,7 +1330,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nigde.ulukisla.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "NİĞDE",
-      "district": "ULUKIŞLA"
+      "district": "ULUKIŞLA",
+      "erpCode": "120.01.Y.51.012"
     },
     {
       "id": "customer-durmus.demir.konya.cumra.kerim.turkay",
@@ -1267,7 +1340,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-konya.cumra.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "KONYA",
-      "district": "ÇUMRA"
+      "district": "ÇUMRA",
+      "erpCode": "120.01.Y.42.042"
     },
     {
       "id": "customer-uysallar.organik.tarim.urunleri.dogal.ve.kimyevi.gubre.dayanikli.tuketim.mallari.sanayi.ticaret.limited.sirketi.afyonkarahisar.suhut.kerim.turkay",
@@ -1276,7 +1350,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-afyonkarahisar.suhut.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "AFYONKARAHİSAR",
-      "district": "ŞUHUT"
+      "district": "ŞUHUT",
+      "erpCode": "120.01.Y.03.003"
     },
     {
       "id": "customer-cukurkuyu.gida.sanayi.ve.ticaret.limited.sirketi.nigde.bor.kerim.turkay",
@@ -1285,7 +1360,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-nigde.bor.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "NİĞDE",
-      "district": "BOR"
+      "district": "BOR",
+      "erpCode": "120.01.Y.51.008"
     },
     {
       "id": "customer-osman.fatih.kartal.isparta.egirdir.kerim.turkay",
@@ -1294,7 +1370,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-isparta.egirdir.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "ISPARTA",
-      "district": "EĞİRDİR"
+      "district": "EĞİRDİR",
+      "erpCode": "120.01.Y.32.005"
     },
     {
       "id": "customer-mehmet.sarisir.usak.esme.kerim.turkay",
@@ -1303,7 +1380,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-usak.esme.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "UŞAK",
-      "district": "EŞME"
+      "district": "EŞME",
+      "erpCode": "120.01.Y.64.002"
     },
     {
       "id": "customer-mehmet.tok.tok.hububat.tl.burdur.aglasun.kerim.turkay",
@@ -1312,7 +1390,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-burdur.aglasun.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "BURDUR",
-      "district": "AĞLASUN"
+      "district": "AĞLASUN",
+      "erpCode": "120.01.Y.15.002"
     },
     {
       "id": "customer-sinirli.sorumlu.ketenli.mahallesi.tarimsal.kalkinma.kooperatifi.konya.seydisehir.kerim.turkay",
@@ -1321,7 +1400,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-konya.seydisehir.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "KONYA",
-      "district": "SEYDİŞEHİR"
+      "district": "SEYDİŞEHİR",
+      "erpCode": "120.01.Y.42.043"
     },
     {
       "id": "customer-mustafa.bayar.afyonkarahisar.suhut.kerim.turkay",
@@ -1330,7 +1410,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-afyonkarahisar.suhut.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "AFYONKARAHİSAR",
-      "district": "ŞUHUT"
+      "district": "ŞUHUT",
+      "erpCode": "120.01.Y.03.002"
     },
     {
       "id": "customer-arf.petrol.hububat.hayvancilik.ticaret.ve.sanayi.limited.sirketi.konya.emirgazi.kerim.turkay",
@@ -1339,7 +1420,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-konya.emirgazi.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "KONYA",
-      "district": "EMİRGAZİ"
+      "district": "EMİRGAZİ",
+      "erpCode": "120.01.Y.42.018"
     },
     {
       "id": "customer-ucar.hirdavat.tuhafiye.ve.nakl.gida.tarim.tic.ltd.sirk.konya.sarayonu.kerim.turkay",
@@ -1348,7 +1430,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-konya.sarayonu.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "KONYA",
-      "district": "SARAYÖNÜ"
+      "district": "SARAYÖNÜ",
+      "erpCode": "120.01.Y.42.025"
     },
     {
       "id": "customer-semerci.tarim.ve.petrol.urun.mimarl.muh.ins.san.tic.lt.sti.konya.meram.kerim.turkay",
@@ -1357,7 +1440,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-konya.meram.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "KONYA",
-      "district": "MERAM"
+      "district": "MERAM",
+      "erpCode": "120.01.Y.42.020"
     },
     {
       "id": "customer-sinirli.sorumlu.ladik.kasabasi.tarimsal.kalkinma.kooperatifi.konya.sarayonu.kerim.turkay",
@@ -1366,7 +1450,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-konya.sarayonu.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "KONYA",
-      "district": "SARAYÖNÜ"
+      "district": "SARAYÖNÜ",
+      "erpCode": "120.01.Y.42.049"
     },
     {
       "id": "customer-akif.sarac.sarac.tarim.konya.beysehir.kerim.turkay",
@@ -1375,7 +1460,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-konya.beysehir.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "KONYA",
-      "district": "BEYŞEHİR"
+      "district": "BEYŞEHİR",
+      "erpCode": "120.01.Y.42.045"
     },
     {
       "id": "customer-tursucular.zahirecilik.sanayi.ve.ticaret.limited.sirketi.konya.ilgin.kerim.turkay",
@@ -1384,7 +1470,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-konya.ilgin.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "KONYA",
-      "district": "ILGIN"
+      "district": "ILGIN",
+      "erpCode": "120.01.Y.42.050"
     },
     {
       "id": "customer-karaoglan.hububat.sanayi.ticaret.limited.sirketi.isparta.sarkikaraagac.kerim.turkay",
@@ -1393,7 +1480,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-isparta.sarkikaraagac.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "ISPARTA",
-      "district": "ŞARKİKARAAĞAÇ"
+      "district": "ŞARKİKARAAĞAÇ",
+      "erpCode": "120.01.Y.32.007"
     },
     {
       "id": "customer-simsek.yemcilik.hayvancilik.insaat.gida.sanayi.ticaret.limited.sirketi.konya.meram.kerim.turkay",
@@ -1402,7 +1490,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-konya.meram.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "KONYA",
-      "district": "MERAM"
+      "district": "MERAM",
+      "erpCode": "120.01.Y.42.044"
     },
     {
       "id": "customer-sallioglu.yem.ahmet.keskin.burdur.merkez.kerim.turkay",
@@ -1411,7 +1500,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-burdur.merkez.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "BURDUR",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.15.004"
     },
     {
       "id": "customer-eyyup.aga.tarim.hayvancilik.nakliyat.sanayi.ve.ticaret.limited.sirketi.konya.eregli.kerim.turkay",
@@ -1420,7 +1510,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-konya.eregli.kerim.turkay",
       "repId": "rep-kerim.turkay",
       "city": "KONYA",
-      "district": "EREĞLİ"
+      "district": "EREĞLİ",
+      "erpCode": "120.01.Y.42.051"
     },
     {
       "id": "customer-ciftciler.hububat.ve.yem.sanayii.ticaret.limited.sirketi.mersin.toroslar.melih.can.pisirici",
@@ -1429,7 +1520,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.toroslar.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "MERSİN",
-      "district": "TOROSLAR"
+      "district": "TOROSLAR",
+      "erpCode": "120.01.Y.33.017"
     },
     {
       "id": "customer-tokpinar.gubre.tarim.hayvancilik.ticaret.limited.sirketi.adana.tufanbeyli.melih.can.pisirici",
@@ -1438,7 +1530,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-adana.tufanbeyli.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "ADANA",
-      "district": "TUFANBEYLİ"
+      "district": "TUFANBEYLİ",
+      "erpCode": "120.01.Y.01.022"
     },
     {
       "id": "customer-mustafa.onge.mersin.gulnar.melih.can.pisirici",
@@ -1447,7 +1540,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.gulnar.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "MERSİN",
-      "district": "GÜLNAR"
+      "district": "GÜLNAR",
+      "erpCode": "120.01.Y.33.004"
     },
     {
       "id": "customer-firatlar.gazi.tarim.ve.hayvancilik.urunleri.petrol.insaat.ve.temizlik.gida.gumrukleme.ithalat.ve.ihracat.sanayi.ticaret.limited.sirleti.mersin.akdeniz.melih.can.pisirici",
@@ -1456,7 +1550,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.akdeniz.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "MERSİN",
-      "district": "AKDENİZ"
+      "district": "AKDENİZ",
+      "erpCode": "120.01.Y.33.040"
     },
     {
       "id": "customer-sendioglu.un.yem.uretimi.tasimacilik.sanayi.ve.ticaret.limited.sirketi.hatay.antakya.melih.can.pisirici",
@@ -1465,7 +1560,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-hatay.antakya.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "HATAY",
-      "district": "ANTAKYA"
+      "district": "ANTAKYA",
+      "erpCode": "120.01.Y.31.008"
     },
     {
       "id": "customer-ali.cengiz.kadioglu.kadioglu.tarim.urunleri.osmaniye.kadirli.melih.can.pisirici",
@@ -1474,7 +1570,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-osmaniye.kadirli.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "OSMANİYE",
-      "district": "KADİRLİ"
+      "district": "KADİRLİ",
+      "erpCode": "120.01.Y.80.010"
     },
     {
       "id": "customer-kadioglu.hububat.tarim.yem.ticaret.limited.sirketi.osmaniye.kadirli.melih.can.pisirici",
@@ -1483,7 +1580,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-osmaniye.kadirli.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "OSMANİYE",
-      "district": "KADİRLİ"
+      "district": "KADİRLİ",
+      "erpCode": "120.01.Y.80.011"
     },
     {
       "id": "customer-adil.sait.kilbas.mersin.erdemli.melih.can.pisirici",
@@ -1492,7 +1590,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.erdemli.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "MERSİN",
-      "district": "ERDEMLİ"
+      "district": "ERDEMLİ",
+      "erpCode": "120.01.Y.33.035"
     },
     {
       "id": "customer-mustafa.keskin.mersin.merkez.melih.can.pisirici",
@@ -1501,7 +1600,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.merkez.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "MERSİN",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.33.042"
     },
     {
       "id": "customer-mustafa.kaya.adana.saricam.melih.can.pisirici",
@@ -1510,7 +1610,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-adana.saricam.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "ADANA",
-      "district": "SARIÇAM"
+      "district": "SARIÇAM",
+      "erpCode": "120.01.Y.01.024"
     },
     {
       "id": "customer-dagdelen.yem.ve.tarim.urunleri.sanayi.ticaret.ve.limited.sirketi.gaziantep.sehitkamil.melih.can.pisirici",
@@ -1519,7 +1620,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-gaziantep.sehitkamil.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "GAZİANTEP",
-      "district": "ŞEHİTKAMİL"
+      "district": "ŞEHİTKAMİL",
+      "erpCode": "120.01.Y.27.008"
     },
     {
       "id": "customer-kenan.yalcin.yalcin.petrol.osmaniye.merkez.melih.can.pisirici",
@@ -1528,7 +1630,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-osmaniye.merkez.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "OSMANİYE",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.80.008"
     },
     {
       "id": "customer-damar.yem.ticaret.ahmet.damar.osmaniye.merkez.melih.can.pisirici",
@@ -1537,7 +1640,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-osmaniye.merkez.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "OSMANİYE",
-      "district": "MERKEZ"
+      "district": "MERKEZ",
+      "erpCode": "120.01.Y.80.001"
     },
     {
       "id": "customer-bilen.gida.hayvancilik.konf.ins.mlz.ve.pet.urun.san.ve.tic.ltd.sti.mersin.mezitli.melih.can.pisirici",
@@ -1546,7 +1650,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.mezitli.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "MERSİN",
-      "district": "MEZİTLİ"
+      "district": "MEZİTLİ",
+      "erpCode": "120.01.Y.33.016"
     },
     {
       "id": "customer-protovet.veterinerlik.ilac.yem.sanayi.ve.ticaret.limited.sirketi.adana.yuregir.melih.can.pisirici",
@@ -1555,7 +1660,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-adana.yuregir.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "ADANA",
-      "district": "YÜREĞİR"
+      "district": "YÜREĞİR",
+      "erpCode": "120.01.Y.01.008"
     },
     {
       "id": "customer-ay.dem.yem.imalat.hayvancilik.insaat.geri.donusum.gida.maddeleri.toptan.perakende.ambalaj.pazarlama.uretim.ihracat.ithalat.sanayi.ve.ticaret.limited.sirketi.mersin.tarsus.melih.can.pisirici",
@@ -1564,7 +1670,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.tarsus.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "MERSİN",
-      "district": "TARSUS"
+      "district": "TARSUS",
+      "erpCode": "120.01.Y.33.036"
     },
     {
       "id": "customer-erkayiranlar.gida.tarim.enerji.yem.sanayi.ve.ticaret.limited.sirketi.osmaniye.kadirli.melih.can.pisirici",
@@ -1573,7 +1680,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-osmaniye.kadirli.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "OSMANİYE",
-      "district": "KADİRLİ"
+      "district": "KADİRLİ",
+      "erpCode": "120.01.Y.80.009"
     },
     {
       "id": "customer-mentes.un.degirmeni.halil.mentes.tl.mersin.erdemli.melih.can.pisirici",
@@ -1582,7 +1690,8 @@ window.BOOTSTRAP_STATE = {
       "dealerId": "dealer-mersin.erdemli.melih.can.pisirici",
       "repId": "rep-melih.can.pisirici",
       "city": "MERSİN",
-      "district": "ERDEMLİ"
+      "district": "ERDEMLİ",
+      "erpCode": "120.01.33.33.048"
     }
   ],
   "inventory": [

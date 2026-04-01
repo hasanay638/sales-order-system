@@ -9,7 +9,6 @@
 <body>
   <div class="page-shell">
     <header class="brand-bar">
-      <img class="brand-logo" src="./yemcibey-logo-horizontal.png" alt="Yemcibey logo">
       <div class="brand-session">
         <span class="eyebrow brand-eyebrow">Giris yapan kisi</span>
         <strong id="sessionUserName">Kullanici</strong>
@@ -34,19 +33,15 @@
       <section id="adminPanel" class="panel hidden">
         <div class="panel-title-row">
           <div>
-            <p class="eyebrow">Admin alani</p>
-            <h2>Siparis kontrol paneli</h2>
+            <h2>Yonetim</h2>
           </div>
-          <span class="tag">Tum firmalar</span>
         </div>
 
         <div class="admin-shortcuts">
-          <article class="subpanel">
-            <p class="eyebrow">Yonetim islemleri</p>
-            <h3>Musteri ve satici atamalari</h3>
-            <p class="muted">Atama islemleri, musteri listesi ve guncellemeler ayri yonetim ekraninda acilir.</p>
-            <a class="admin-link-button" href="./admin-management.html">Yonetim ekranina git</a>
-          </article>
+          <a class="admin-link-button" href="./customers.html">Musteriler</a>
+          <a class="admin-link-button" href="./products.html">Urunler</a>
+          <a class="admin-link-button" href="./admin-management.html">Satiscilar</a>
+          <a class="admin-link-button" href="./deleted-records.html">Silinenler</a>
         </div>
 
         <section class="admin-orders-grid">
@@ -63,6 +58,7 @@
               <h3>Kontrolu yapilan siparisler</h3>
               <span class="tag">Onaylananlar</span>
             </div>
+            <input id="adminReviewedSearchInput" type="search" placeholder="Musteri ara">
             <div id="adminReviewedOrdersList" class="orders-list"></div>
           </article>
         </section>
@@ -130,10 +126,24 @@
             </form>
           </article>
 
-          <article class="subpanel">
-            <h3>Gecmis siparisler</h3>
-            <div id="ordersList" class="orders-list"></div>
-          </article>
+          <div class="sales-orders-column">
+            <article class="subpanel">
+              <div class="panel-title-row">
+                <h3>Onay bekleyen siparisler</h3>
+                <span class="tag">Bekleyenler</span>
+              </div>
+              <input id="salesOrdersSearchInput" type="search" placeholder="Musteri ara">
+              <div id="salesPendingOrdersList" class="orders-list"></div>
+            </article>
+
+            <article class="subpanel">
+              <div class="panel-title-row">
+                <h3>Onaylanan siparisler</h3>
+                <span class="tag">Tamamlananlar</span>
+              </div>
+              <div id="salesReviewedOrdersList" class="orders-list"></div>
+            </article>
+          </div>
         </div>
       </section>
     </main>

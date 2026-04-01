@@ -7,14 +7,31 @@ const defaultSeedState = {
   dealers: [],
   customers: [],
   inventory: [],
-  orders: []
+  orders: [],
+  deletedRecords: []
 };
 
 const seedState = window.BOOTSTRAP_STATE || defaultSeedState;
+const ADMIN_LIST_PREVIEW_LIMIT = 5;
 
 const els = {};
 let state = loadState();
 let currentUserId = loadSessionUserId();
+let showAllCustomers = false;
+let showAllProducts = false;
+let salesRepEditCacheId = "";
+let adminReviewedSearch = "";
+let salesOrdersSearch = "";
+let deletedRecordsTab = "orders";
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 function loadState() {
   return structuredClone(seedState);
@@ -82,6 +99,17 @@ function getCurrentUser() {
   return byId(state.users, currentUserId) || null;
 }
 
+function getDeleteRequestOptions() {
+  const currentUser = getCurrentUser();
+  return {
+    method: "DELETE",
+    headers: {
+      "X-User-Id": currentUser?.id || "",
+      "X-User-Name": currentUser?.name || ""
+    }
+  };
+}
+
 function getRepUsers() {
   return state.users.filter((user) => user.role === "sales");
 }
@@ -100,6 +128,54 @@ function getRepName(repId) {
 
 function getProduct(productId) {
   return byId(state.inventory, productId);
+}
+
+function getShortCustomerLabel(customer) {
+  const words = String(customer?.name || "").trim().split(/\s+/).filter(Boolean);
+  if (!words.length) {
+    return "-";
+  }
+  const shortLabel = words.slice(0, 4).join(" ");
+  return words.length > 4 ? `${shortLabel}...` : shortLabel;
+}
+
+function normalizeSearchText(value) {
+  return String(value || "")
+    .toLocaleLowerCase("tr-TR")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function customerMatchesSearch(customerName, query) {
+  if (!query) {
+    return true;
+  }
+
+  return normalizeSearchText(customerName).includes(normalizeSearchText(query));
+}
+
+function getOrderStatusLabel(order) {
+  if (order.reviewStatus === "reviewed") {
+    return "Kontrol edildi";
+  }
+
+  if (order.reviewStatus === "rejected") {
+    return "Red";
+  }
+
+  return order.submissionLabel || "Yeni Siparis";
+}
+
+function getOrderTagClass(order) {
+  if (order.reviewStatus === "rejected") {
+    return "tag-danger";
+  }
+
+  if (order.submissionLabel === "Revize") {
+    return "tag-warning";
+  }
+
+  return "tag-info";
 }
 
 function getVisibleCustomers(user) {
@@ -122,11 +198,21 @@ function getOrdersTotal(order) {
   return order.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.price)), 0);
 }
 
+function getOrderTotalKg(order) {
+  return order.items.reduce((sum, item) => sum + (Number(item.quantity) * 50), 0);
+}
+
 function formatMoney(value) {
   return new Intl.NumberFormat("tr-TR", {
     style: "currency",
     currency: "TRY",
     maximumFractionDigits: 2
+  }).format(Number(value || 0));
+}
+
+function formatKg(value) {
+  return new Intl.NumberFormat("tr-TR", {
+    maximumFractionDigits: 0
   }).format(Number(value || 0));
 }
 
@@ -164,6 +250,21 @@ function isToday(value) {
 
 function createId(prefix) {
   return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+function buildPreviewRows(items, renderRow, expanded, emptyMessage) {
+  if (!items.length) {
+    return {
+      rows: `<tr><td colspan="10">${emptyMessage}</td></tr>`,
+      hasMore: false
+    };
+  }
+
+  const visibleItems = expanded ? items : items.slice(0, ADMIN_LIST_PREVIEW_LIMIT);
+  return {
+    rows: visibleItems.map(renderRow).join(""),
+    hasMore: items.length > ADMIN_LIST_PREVIEW_LIMIT
+  };
 }
 
 function summarizeOrderChanges(previousOrder, nextPayload) {
@@ -288,13 +389,36 @@ function hydrateElements() {
   els.customerCompanySelect = document.getElementById("customerCompanySelect");
   els.customerDealerSelect = document.getElementById("customerDealerSelect");
   els.customerRepSelect = document.getElementById("customerRepSelect");
+  els.customerErpCodeInput = document.getElementById("customerErpCodeInput");
   els.assignmentForm = document.getElementById("assignmentForm");
   els.assignmentCustomerSelect = document.getElementById("assignmentCustomerSelect");
   els.assignmentRepSelect = document.getElementById("assignmentRepSelect");
+  els.assignmentCustomerErpCodeInput = document.getElementById("assignmentCustomerErpCodeInput");
+  els.assignmentCurrentRepInput = document.getElementById("assignmentCurrentRepInput");
   els.removeCustomerButton = document.getElementById("removeCustomerButton");
+  els.importCustomerCodesButton = document.getElementById("importCustomerCodesButton");
   els.customerTable = document.getElementById("customerTable");
+  els.salesRepForm = document.getElementById("salesRepForm");
+  els.salesRepCompanySelect = document.getElementById("salesRepCompanySelect");
+  els.salesRepCodeInput = document.getElementById("salesRepCodeInput");
+  els.salesRepEditForm = document.getElementById("salesRepEditForm");
+  els.salesRepEditSelect = document.getElementById("salesRepEditSelect");
+  els.salesRepEditNameInput = document.getElementById("salesRepEditNameInput");
+  els.salesRepEditUsernameInput = document.getElementById("salesRepEditUsernameInput");
+  els.salesRepEditCodeInput = document.getElementById("salesRepEditCodeInput");
+  els.salesRepEditPasswordInput = document.getElementById("salesRepEditPasswordInput");
+  els.salesRepEditRegionInput = document.getElementById("salesRepEditRegionInput");
+  els.salesRepEditCompanySelect = document.getElementById("salesRepEditCompanySelect");
+  els.salesRepDeleteSelect = document.getElementById("salesRepDeleteSelect");
+  els.removeSalesRepButton = document.getElementById("removeSalesRepButton");
+  els.salesRepTable = document.getElementById("salesRepTable");
+  els.productForm = document.getElementById("productForm");
+  els.productDeleteSelect = document.getElementById("productDeleteSelect");
+  els.removeProductButton = document.getElementById("removeProductButton");
+  els.productTable = document.getElementById("productTable");
   els.adminPendingOrdersList = document.getElementById("adminPendingOrdersList");
   els.adminReviewedOrdersList = document.getElementById("adminReviewedOrdersList");
+  els.adminReviewedSearchInput = document.getElementById("adminReviewedSearchInput");
   els.salesScopeTag = document.getElementById("salesScopeTag");
   els.orderForm = document.getElementById("orderForm");
   els.orderIdInput = document.getElementById("orderIdInput");
@@ -308,7 +432,12 @@ function hydrateElements() {
   els.shippingOwnerSelect = document.getElementById("shippingOwnerSelect");
   els.orderNoteInput = document.getElementById("orderNoteInput");
   els.clearOrderButton = document.getElementById("clearOrderButton");
-  els.ordersList = document.getElementById("ordersList");
+  els.salesPendingOrdersList = document.getElementById("salesPendingOrdersList");
+  els.salesReviewedOrdersList = document.getElementById("salesReviewedOrdersList");
+  els.salesOrdersSearchInput = document.getElementById("salesOrdersSearchInput");
+  els.deletedRecordsPanel = document.getElementById("deletedRecordsPanel");
+  els.deletedRecordsTabs = document.getElementById("deletedRecordsTabs");
+  els.deletedRecordsContent = document.getElementById("deletedRecordsContent");
 }
 
 function hasElement(element) {
@@ -339,8 +468,8 @@ function renderMetrics() {
 
   if (currentUser.role === "admin") {
     const dailyOrders = state.orders.filter((order) => isToday(order.submittedAt));
-    const reviewedOrders = state.orders.filter((order) => order.reviewStatus === "reviewed");
-    const pendingOrders = state.orders.filter((order) => order.reviewStatus !== "reviewed");
+    const reviewedOrders = state.orders.filter((order) => order.reviewStatus !== "pending");
+    const pendingOrders = state.orders.filter((order) => order.reviewStatus === "pending");
 
     cards = [
       { label: "Gunluk girilen siparisler", value: dailyOrders.length },
@@ -368,7 +497,8 @@ function renderMetrics() {
 }
 
 function renderAdminPanel() {
-  if (!hasElement(els.adminPanel) && !hasElement(els.customerTable)) {
+  const hasAdminContent = hasElement(els.adminPanel) || hasElement(els.customerTable) || hasElement(els.productTable) || hasElement(els.salesRepTable);
+  if (!hasAdminContent) {
     return;
   }
 
@@ -379,7 +509,7 @@ function renderAdminPanel() {
   }
 
   if (!showAdmin) {
-    if (hasElement(els.customerTable) && !hasElement(els.adminPanel)) {
+    if (!hasElement(els.adminPanel)) {
       window.location.href = "./order-create.html";
     }
     return;
@@ -391,11 +521,26 @@ function renderAdminPanel() {
   if (hasElement(els.customerRepSelect)) {
     populateSelect(els.customerRepSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.region}`, null);
   }
+  if (hasElement(els.salesRepCompanySelect)) {
+    populateSelect(els.salesRepCompanySelect, state.companies, (company) => company.name, null);
+  }
+  if (hasElement(els.salesRepEditCompanySelect)) {
+    populateSelect(els.salesRepEditCompanySelect, state.companies, (company) => company.name, null);
+  }
   if (hasElement(els.assignmentRepSelect)) {
     populateSelect(els.assignmentRepSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.region}`, null);
   }
+  if (hasElement(els.salesRepDeleteSelect)) {
+    populateSelect(els.salesRepDeleteSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.region}`, null);
+  }
+  if (hasElement(els.salesRepEditSelect)) {
+    populateSelect(els.salesRepEditSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.username}`, null);
+  }
   if (hasElement(els.assignmentCustomerSelect)) {
     populateSelect(els.assignmentCustomerSelect, state.customers, (customer) => customer.name, null);
+  }
+  if (hasElement(els.productDeleteSelect)) {
+    populateSelect(els.productDeleteSelect, state.inventory, (product) => `${product.name} (${product.sku})`, null);
   }
 
   if (hasElement(els.customerDealerSelect) && hasElement(els.customerRepSelect)) {
@@ -404,13 +549,44 @@ function renderAdminPanel() {
   if (hasElement(els.assignmentRepSelect) && !els.assignmentRepSelect.value && getRepUsers()[0]) {
     els.assignmentRepSelect.value = getRepUsers()[0].id;
   }
+  if (hasElement(els.assignmentCustomerSelect) && !els.assignmentCustomerSelect.value && state.customers[0]) {
+    els.assignmentCustomerSelect.value = state.customers[0].id;
+  }
+  syncAssignmentCustomerMeta();
+  if (hasElement(els.salesRepEditSelect) && !els.salesRepEditSelect.value && getRepUsers()[0]) {
+    els.salesRepEditSelect.value = getRepUsers()[0].id;
+  }
+  if (hasElement(els.salesRepEditSelect) && els.salesRepEditSelect.value && salesRepEditCacheId !== els.salesRepEditSelect.value) {
+    loadSalesRepIntoEditForm(els.salesRepEditSelect.value).catch(console.error);
+  }
 
   if (hasElement(els.customerTable)) {
+    const customerRows = buildPreviewRows(
+      state.customers,
+      (customer) => {
+        const dealer = getDealerForCustomer(customer);
+        const rep = byId(state.users, customer.repId);
+        return `
+          <tr>
+            <td>${customer.name}</td>
+            <td>${customer.erpCode || "-"}</td>
+            <td>${getCompanyName(customer.companyId)}</td>
+            <td>${dealer?.name || "-"}</td>
+            <td>${rep?.name || "-"}</td>
+            <td>${rep?.region || "-"}</td>
+          </tr>
+        `;
+      },
+      showAllCustomers,
+      "Kayitli musteri bulunmuyor."
+    );
+
     els.customerTable.innerHTML = `
     <table>
       <thead>
         <tr>
           <th>Musteri</th>
+          <th>ERP kodu</th>
           <th>Firma</th>
           <th>Bayi</th>
           <th>Satici</th>
@@ -418,27 +594,198 @@ function renderAdminPanel() {
         </tr>
       </thead>
       <tbody>
-        ${state.customers.map((customer) => {
-          const dealer = getDealerForCustomer(customer);
-          const rep = byId(state.users, customer.repId);
-          return `
-            <tr>
-              <td>${customer.name}</td>
-              <td>${getCompanyName(customer.companyId)}</td>
-              <td>${dealer?.name || "-"}</td>
-              <td>${rep?.name || "-"}</td>
-              <td>${rep?.region || "-"}</td>
-            </tr>
-          `;
-        }).join("")}
+        ${customerRows.rows}
       </tbody>
     </table>
+    ${customerRows.hasMore ? `<button class="ghost-button list-toggle-button" type="button" data-show-all-customers>${showAllCustomers ? "Listeyi daralt" : "Devamini goster"}</button>` : ""}
   `;
+  }
+
+  if (hasElement(els.salesRepTable)) {
+    const salesReps = getRepUsers();
+    els.salesRepTable.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Satici</th>
+            <th>Kullanici adi</th>
+            <th>XML kodu</th>
+            <th>Bolge</th>
+            <th>Firma</th>
+            <th>Musteri</th>
+            <th>Siparis</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${salesReps.map((rep) => `
+            <tr>
+              <td>${rep.name}</td>
+              <td>${rep.username}</td>
+              <td>${rep.salesmanCode || "-"}</td>
+              <td>${rep.region || "-"}</td>
+              <td>${getCompanyName(rep.companyId)}</td>
+              <td>${state.customers.filter((customer) => customer.repId === rep.id).length}</td>
+              <td>${state.orders.filter((order) => order.repId === rep.id).length}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  if (hasElement(els.productTable)) {
+    const productRows = buildPreviewRows(
+      state.inventory,
+      (product) => `
+        <tr>
+          <td>${product.sku}</td>
+          <td>${product.name}</td>
+          <td>${product.unit || "-"}</td>
+          <td>${state.orders.reduce((count, order) => count + order.items.filter((item) => item.productId === product.id).length, 0)}</td>
+        </tr>
+      `,
+      showAllProducts,
+      "Kayitli urun bulunmuyor."
+    );
+
+    els.productTable.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Stok kodu</th>
+            <th>Urun adi</th>
+            <th>Birim</th>
+            <th>Kullanim</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${productRows.rows}
+        </tbody>
+      </table>
+      ${productRows.hasMore ? `<button class="ghost-button list-toggle-button" type="button" data-show-all-products>${showAllProducts ? "Listeyi daralt" : "Devamini goster"}</button>` : ""}
+    `;
   }
 
   if (hasElement(els.adminPendingOrdersList) || hasElement(els.adminReviewedOrdersList)) {
     renderAdminOrdersList();
   }
+
+  if (hasElement(els.customerTable)) {
+    els.customerTable.querySelectorAll("[data-show-all-customers]").forEach((button) => {
+      button.addEventListener("click", () => {
+        showAllCustomers = !showAllCustomers;
+        renderAdminPanel();
+      });
+    });
+  }
+
+  if (hasElement(els.productTable)) {
+    els.productTable.querySelectorAll("[data-show-all-products]").forEach((button) => {
+      button.addEventListener("click", () => {
+        showAllProducts = !showAllProducts;
+        renderAdminPanel();
+      });
+    });
+  }
+}
+
+function renderDeletedRecordsPage() {
+  if (!hasElement(els.deletedRecordsPanel) || !hasElement(els.deletedRecordsTabs) || !hasElement(els.deletedRecordsContent)) {
+    return;
+  }
+
+  const currentUser = getCurrentUser();
+  const showAdmin = currentUser.role === "admin";
+  els.deletedRecordsPanel.classList.toggle("hidden", !showAdmin);
+  if (!showAdmin) {
+    window.location.href = "./order-create.html";
+    return;
+  }
+
+  const tabs = [
+    { id: "orders", label: "Siparisler", type: "order" },
+    { id: "customers", label: "Musteriler", type: "customer" },
+    { id: "salesReps", label: "Satiscilar", type: "salesRep" },
+    { id: "inventory", label: "Stok kartlari", type: "inventory" }
+  ];
+
+  els.deletedRecordsTabs.innerHTML = tabs.map((tab) => `
+    <button class="${deletedRecordsTab === tab.id ? "" : "ghost-button"}" type="button" data-deleted-tab="${tab.id}">
+      ${tab.label}
+    </button>
+  `).join("");
+
+  const activeTab = tabs.find((tab) => tab.id === deletedRecordsTab) || tabs[0];
+  const records = (state.deletedRecords || []).filter((record) => record.entityType === activeTab.type);
+
+  if (!records.length) {
+    els.deletedRecordsContent.innerHTML = `<div class="info-card muted-card">Bu sekmede silinen kayit yok.</div>`;
+  } else if (activeTab.id === "orders") {
+    els.deletedRecordsContent.innerHTML = records.map((record) => {
+      const payload = record.payload || {};
+      const items = (payload.items || []).map((item) => `
+        <li>${item.productName || item.sku || "Urun"} - ${item.quantity} x ${formatMoney(item.price)}</li>
+      `).join("");
+
+      return `
+        <article class="order-card deleted-record-card">
+          <div class="panel-title-row">
+            <div>
+              <strong>${record.displayName}</strong>
+              <p class="muted">${payload.repName || "-"} | ${payload.companyName || "-"} | ${formatDateTime(record.deletedAt)}</p>
+              ${record.deletedByName ? `<p class="deleted-by-text">Silen kisi: ${escapeHtml(record.deletedByName)}</p>` : ""}
+            </div>
+            <div class="deleted-record-actions">
+              <span class="tag">${formatKg(payload.totalKg || 0)} kg</span>
+              <button type="button" data-deleted-record-restore="${record.id}">Geri yukle</button>
+            </div>
+          </div>
+          <p><strong>Musteri:</strong> ${payload.customerName || "-"}</p>
+          <p><strong>Durum:</strong> ${payload.reviewStatus || "-"}</p>
+          <p><strong>Not:</strong> ${payload.note || "-"}</p>
+          <ul>${items || "<li>Urun kalemi yok.</li>"}</ul>
+        </article>
+      `;
+    }).join("");
+  } else {
+    els.deletedRecordsContent.innerHTML = records.map((record) => {
+      const payload = record.payload || {};
+      const rows = Object.entries(payload)
+        .filter(([, value]) => value !== "" && value !== null && value !== undefined && !Array.isArray(value) && typeof value !== "object")
+        .map(([key, value]) => `<p><strong>${key}:</strong> ${value}</p>`)
+        .join("");
+
+      return `
+        <article class="order-card deleted-record-card">
+          <div class="panel-title-row">
+            <div>
+              <strong>${record.displayName}</strong>
+              <p class="muted">${formatDateTime(record.deletedAt)}</p>
+              ${record.deletedByName ? `<p class="deleted-by-text">Silen kisi: ${escapeHtml(record.deletedByName)}</p>` : ""}
+            </div>
+            <button type="button" data-deleted-record-restore="${record.id}">Geri yukle</button>
+          </div>
+          ${rows || `<p class="muted">Detay bulunmuyor.</p>`}
+        </article>
+      `;
+    }).join("");
+  }
+
+  els.deletedRecordsTabs.querySelectorAll("[data-deleted-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      deletedRecordsTab = button.dataset.deletedTab;
+      renderDeletedRecordsPage();
+    });
+  });
+  els.deletedRecordsContent.querySelectorAll("[data-deleted-record-restore]").forEach((button) => {
+    button.addEventListener("click", () => restoreDeletedRecord(button.dataset.deletedRecordRestore));
+  });
+}
+
+async function restoreDeletedRecord(deletedRecordId) {
+  await apiRequest(`./api/deleted-records/${deletedRecordId}/restore`, { method: "POST" });
+  await refreshState();
+  renderAll();
 }
 
 function syncDealerOptions() {
@@ -449,6 +796,38 @@ function syncDealerOptions() {
   const selectedRepId = els.customerRepSelect.value || getRepUsers()[0]?.id;
   const repDealers = state.dealers.filter((dealer) => dealer.repId === selectedRepId);
   populateSelect(els.customerDealerSelect, repDealers, (dealer) => dealer.name, null);
+}
+
+function syncAssignmentCustomerMeta() {
+  if (!hasElement(els.assignmentCustomerSelect) || !hasElement(els.assignmentCustomerErpCodeInput)) {
+    return;
+  }
+
+  const customer = byId(state.customers, els.assignmentCustomerSelect.value);
+  els.assignmentCustomerErpCodeInput.value = customer?.erpCode || "";
+  if (hasElement(els.assignmentCurrentRepInput)) {
+    els.assignmentCurrentRepInput.value = customer ? getRepName(customer.repId) : "";
+  }
+}
+
+async function loadSalesRepIntoEditForm(repId) {
+  if (!hasElement(els.salesRepEditForm) || !repId) {
+    return;
+  }
+
+  const payload = await apiRequest(`./api/sales-reps/${repId}`);
+  const salesRep = payload.salesRep;
+  salesRepEditCacheId = salesRep.id;
+  els.salesRepEditSelect.value = salesRep.id;
+  if (hasElement(els.salesRepDeleteSelect)) {
+    els.salesRepDeleteSelect.value = salesRep.id;
+  }
+  els.salesRepEditNameInput.value = salesRep.name || "";
+  els.salesRepEditUsernameInput.value = salesRep.username || "";
+  els.salesRepEditCodeInput.value = salesRep.salesmanCode || "";
+  els.salesRepEditPasswordInput.value = salesRep.password || "";
+  els.salesRepEditRegionInput.value = salesRep.region || "";
+  els.salesRepEditCompanySelect.value = salesRep.companyId || "";
 }
 
 function renderSalesPanel() {
@@ -465,7 +844,7 @@ function renderSalesPanel() {
   }
 
   const visibleCustomers = getVisibleCustomers(currentUser);
-  populateSelect(els.orderCustomerSelect, visibleCustomers, (customer) => customer.name, "Musteri secin");
+  populateSelect(els.orderCustomerSelect, visibleCustomers, (customer) => getShortCustomerLabel(customer), "Musteri secin");
   els.salesScopeTag.textContent = `${currentUser.name} - ${currentUser.region}`;
 
   if (!visibleCustomers.some((customer) => customer.id === els.orderCustomerSelect.value)) {
@@ -538,48 +917,121 @@ function clearOrderForm() {
   toggleOrderLinesAvailability();
 }
 
-function renderOrdersList() {
+function copyOrderIntoForm(orderId) {
+  const order = byId(state.orders, orderId);
   const currentUser = getCurrentUser();
-  const visibleOrders = getVisibleOrders(currentUser).sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt));
-
-  if (!visibleOrders.length) {
-    els.ordersList.innerHTML = `<div class="info-card muted-card">Henuz siparis yok.</div>`;
+  if (!order || currentUser.role !== "sales" || order.repId !== currentUser.id) {
     return;
   }
 
-  els.ordersList.innerHTML = visibleOrders.map((order) => {
-    const customer = byId(state.customers, order.customerId);
-    const total = getOrdersTotal(order);
-    const itemsMarkup = order.items.map((item) => {
-      const product = getProduct(item.productId);
-      return `<li>${product?.name || "Urun"} - ${item.quantity} x ${formatMoney(item.price)}</li>`;
-    }).join("");
+  els.orderIdInput.value = "";
+  els.orderCustomerSelect.value = order.customerId;
+  els.deliveryDateInput.value = order.deliveryDate;
+  els.paymentTermInput.value = order.paymentTerm || "";
+  els.shippingOwnerSelect.value = order.shippingOwner || "Musteri";
+  els.orderNoteInput.value = order.note || "";
+  els.orderLines.innerHTML = "";
+  order.items.forEach((item) => addLineItem({
+    productId: item.productId,
+    quantity: item.quantity,
+    price: item.price
+  }));
+  renderCustomerSnapshot();
+  toggleOrderLinesAvailability();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
-    return `
-      <article class="order-card">
-        <div class="order-card-top">
-          <div>
-            <strong>${customer?.name || "Musteri silinmis"}</strong>
-            <p>${formatDate(order.deliveryDate)}</p>
-          </div>
-          <button type="button" data-order-edit="${order.id}">Duzenle</button>
+function renderSalesOrderCard(order, allowEdit = false) {
+  const customer = byId(state.customers, order.customerId);
+  const total = getOrdersTotal(order);
+  const itemsMarkup = order.items.map((item) => {
+    const product = getProduct(item.productId);
+    return `<li>${product?.name || "Urun"} - ${item.quantity} x ${formatMoney(item.price)}</li>`;
+  }).join("");
+
+  return `
+    <article class="order-card">
+      <div class="sales-order-summary">
+        <div class="sales-order-summary-main">
+          <p><strong>Siparis No:</strong> #${order.orderNumber || "-"}</p>
+          <strong>${customer?.name || "Musteri silinmis"}</strong>
+          <p>${formatDate(order.deliveryDate)}</p>
         </div>
+        <div class="button-row sales-order-actions">
+          <button class="ghost-button" type="button" data-sales-order-toggle="${order.id}">Ayrintiyi ac</button>
+          ${allowEdit ? `<button type="button" data-order-edit="${order.id}">Duzenle</button>` : ""}
+          <button class="ghost-button" type="button" data-order-copy="${order.id}">Kopyala</button>
+          ${order.reviewStatus === "rejected" ? `<button class="danger-button" type="button" data-order-delete="${order.id}">Sil</button>` : ""}
+        </div>
+      </div>
+      <div class="sales-order-details hidden" data-sales-order-details="${order.id}">
         <div class="order-card-total">
           <span>${order.items.length} kalem</span>
           <strong>${formatMoney(total)}</strong>
         </div>
-        <p><strong>Durum:</strong> ${order.reviewStatus === "reviewed" ? "Kontrol edildi" : (order.submissionLabel || "Yeni Siparis")}</p>
+        <p><strong>Durum:</strong> ${getOrderStatusLabel(order)}</p>
         <p><strong>Vade:</strong> ${order.paymentTerm || "-"}</p>
         <p><strong>Nakliye:</strong> ${order.shippingOwner || "-"}</p>
         <ul>${itemsMarkup}</ul>
         <p><strong>Not:</strong> ${order.note || "-"}</p>
-      </article>
-    `;
-  }).join("");
+      </div>
+    </article>
+  `;
+}
 
-  els.ordersList.querySelectorAll("[data-order-edit]").forEach((button) => {
+function bindSalesOrderActions(container) {
+  if (!container) {
+    return;
+  }
+
+  container.querySelectorAll("[data-sales-order-toggle]").forEach((button) => {
+    button.addEventListener("click", () => toggleSalesOrderDetails(button.dataset.salesOrderToggle));
+  });
+  container.querySelectorAll("[data-order-edit]").forEach((button) => {
     button.addEventListener("click", () => loadOrderIntoForm(button.dataset.orderEdit));
   });
+  container.querySelectorAll("[data-order-copy]").forEach((button) => {
+    button.addEventListener("click", () => copyOrderIntoForm(button.dataset.orderCopy));
+  });
+  container.querySelectorAll("[data-order-delete]").forEach((button) => {
+    button.addEventListener("click", () => deleteOrder(button.dataset.orderDelete));
+  });
+}
+
+function renderOrdersList() {
+  const currentUser = getCurrentUser();
+  const visibleOrders = getVisibleOrders(currentUser)
+    .filter((order) => customerMatchesSearch(byId(state.customers, order.customerId)?.name || "", salesOrdersSearch))
+    .sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt));
+  const pendingOrders = visibleOrders.filter((order) => order.reviewStatus === "pending" || order.reviewStatus === "rejected");
+  const reviewedOrders = visibleOrders.filter((order) => order.reviewStatus === "reviewed");
+
+  if (!hasElement(els.salesPendingOrdersList) || !hasElement(els.salesReviewedOrdersList)) {
+    return;
+  }
+
+  els.salesPendingOrdersList.innerHTML = pendingOrders.length
+    ? pendingOrders.map((order) => renderSalesOrderCard(order, true)).join("")
+    : `<div class="info-card muted-card">Onay bekleyen siparis yok.</div>`;
+
+  els.salesReviewedOrdersList.innerHTML = reviewedOrders.length
+    ? reviewedOrders.map((order) => renderSalesOrderCard(order, false)).join("")
+    : `<div class="info-card muted-card">Henuz onaylanan siparis yok.</div>`;
+
+  bindSalesOrderActions(els.salesPendingOrdersList);
+  bindSalesOrderActions(els.salesReviewedOrdersList);
+}
+
+function toggleSalesOrderDetails(orderId) {
+  const details = document.querySelector(`[data-sales-order-details="${orderId}"]`);
+  const button = document.querySelector(`[data-sales-order-toggle="${orderId}"]`);
+  if (!details || !button) {
+    return;
+  }
+
+  const expanded = !details.classList.contains("hidden");
+  details.classList.toggle("hidden", expanded);
+  button.textContent = expanded ? "Ayrintiyi ac" : "Kucult";
 }
 
 function renderAdminOrdersList() {
@@ -588,8 +1040,10 @@ function renderAdminOrdersList() {
   }
 
   const orders = [...state.orders].sort((left, right) => new Date(right.submittedAt || right.updatedAt) - new Date(left.submittedAt || left.updatedAt));
-  const pendingOrders = orders.filter((order) => order.reviewStatus !== "reviewed");
-  const reviewedOrders = orders.filter((order) => order.reviewStatus === "reviewed");
+  const pendingOrders = orders.filter((order) => order.reviewStatus === "pending");
+  const reviewedOrders = orders
+    .filter((order) => order.reviewStatus !== "pending")
+    .filter((order) => customerMatchesSearch(byId(state.customers, order.customerId)?.name || "", adminReviewedSearch));
 
   els.adminPendingOrdersList.innerHTML = pendingOrders.length
     ? pendingOrders.map((order) => renderAdminOrderCard(order, true)).join("")
@@ -602,45 +1056,83 @@ function renderAdminOrdersList() {
   els.adminPendingOrdersList.querySelectorAll("[data-order-approve]").forEach((button) => {
     button.addEventListener("click", () => approveOrder(button.dataset.orderApprove));
   });
+  els.adminPendingOrdersList.querySelectorAll("[data-order-toggle]").forEach((button) => {
+    button.addEventListener("click", () => toggleAdminOrderDetails(button.dataset.orderToggle));
+  });
+  els.adminPendingOrdersList.querySelectorAll("[data-order-reject]").forEach((button) => {
+    button.addEventListener("click", () => rejectOrder(button.dataset.orderReject));
+  });
+  els.adminPendingOrdersList.querySelectorAll("[data-order-delete]").forEach((button) => {
+    button.addEventListener("click", () => deleteOrder(button.dataset.orderDelete));
+  });
+  els.adminReviewedOrdersList.querySelectorAll("[data-order-toggle]").forEach((button) => {
+    button.addEventListener("click", () => toggleAdminOrderDetails(button.dataset.orderToggle));
+  });
+  els.adminReviewedOrdersList.querySelectorAll("[data-order-delete]").forEach((button) => {
+    button.addEventListener("click", () => deleteOrder(button.dataset.orderDelete));
+  });
+}
+
+function toggleAdminOrderDetails(orderId) {
+  const details = document.querySelector(`[data-order-details="${orderId}"]`);
+  const button = document.querySelector(`[data-order-toggle="${orderId}"]`);
+  if (!details || !button) {
+    return;
+  }
+
+  const expanded = !details.classList.contains("hidden");
+  details.classList.toggle("hidden", expanded);
+  button.textContent = expanded ? "Ayrintiyi ac" : "Kucult";
 }
 
 function renderAdminOrderCard(order, canApprove) {
   const customer = byId(state.customers, order.customerId);
   const rep = byId(state.users, order.repId);
   const dealer = customer ? getDealerForCustomer(customer) : null;
-  const statusClass = order.submissionLabel === "Revize" ? "tag-warning" : "tag-info";
+  const statusClass = getOrderTagClass(order);
+  const totalKg = getOrderTotalKg(order);
 
   return `
     <article class="order-card">
-      <div class="order-card-top">
-        <div>
-          <strong>${customer?.name || "Musteri silinmis"}</strong>
-          <p>${getCompanyName(order.companyId)} - ${rep?.name || "-"}</p>
+      <div class="admin-order-summary">
+        <div class="admin-order-summary-main">
+          <strong>${rep?.name || "-"}</strong>
+          <span>${customer?.name || "Musteri silinmis"}</span>
+          <span>#${order.orderNumber || "-"} - ${formatKg(totalKg)} kg</span>
         </div>
-        <span class="tag">${formatMoney(getOrdersTotal(order))}</span>
+        <div class="button-row admin-order-actions">
+          <button class="ghost-button" type="button" data-order-toggle="${order.id}">Ayrintiyi ac</button>
+          ${canApprove ? `<button type="button" data-order-approve="${order.id}">Onayla</button>` : `<span class="tag">Islem tamamlandi</span>`}
+          ${canApprove ? `<button class="danger-button" type="button" data-order-reject="${order.id}">Reddet</button>` : ""}
+          <button class="danger-button" type="button" data-order-delete="${order.id}">Sil</button>
+        </div>
       </div>
-      <div class="order-card-top">
-        <span class="tag ${statusClass}">${order.submissionLabel || "Yeni Siparis"}</span>
-        ${canApprove ? `<button type="button" data-order-approve="${order.id}">Onayla</button>` : `<span class="tag">Kontrol edildi</span>`}
+      <div class="admin-order-details hidden" data-order-details="${order.id}">
+        <div class="order-card-top">
+          <span class="tag ${statusClass}">${getOrderStatusLabel(order)}</span>
+          <span class="tag">${formatMoney(getOrdersTotal(order))}</span>
+        </div>
+        <div class="admin-order-grid">
+          <p><strong>Siparis No:</strong> #${order.orderNumber || "-"}</p>
+          <p><strong>Musteri:</strong> ${customer?.name || "-"}</p>
+          <p><strong>Bayi:</strong> ${dealer?.name || "-"}</p>
+          <p><strong>Satici:</strong> ${rep?.name || "-"}</p>
+          <p><strong>Firma:</strong> ${getCompanyName(order.companyId)}</p>
+          <p><strong>Teslim:</strong> ${formatDate(order.deliveryDate)}</p>
+          <p><strong>Vade:</strong> ${order.paymentTerm || "-"}</p>
+          <p><strong>Nakliye:</strong> ${order.shippingOwner || "-"}</p>
+          <p><strong>Toplam tonaj:</strong> ${formatKg(totalKg)} kg</p>
+          <p><strong>Kalem:</strong> ${order.items.length}</p>
+          <p><strong>Girilme:</strong> ${formatDateTime(order.submittedAt)}</p>
+          <p><strong>Kontrol:</strong> ${order.reviewStatus === "reviewed" ? formatDateTime(order.reviewedAt) : "Bekliyor"}</p>
+        </div>
+        <div class="admin-order-section">
+          <h4>Siparis notu</h4>
+          <p>${order.note || "-"}</p>
+        </div>
+        ${renderOrderItemsDetails(order)}
+        ${renderRevisionSummary(order)}
       </div>
-      <div class="admin-order-grid">
-        <p><strong>Musteri:</strong> ${customer?.name || "-"}</p>
-        <p><strong>Bayi:</strong> ${dealer?.name || "-"}</p>
-        <p><strong>Satici:</strong> ${rep?.name || "-"}</p>
-        <p><strong>Firma:</strong> ${getCompanyName(order.companyId)}</p>
-        <p><strong>Teslim:</strong> ${formatDate(order.deliveryDate)}</p>
-        <p><strong>Vade:</strong> ${order.paymentTerm || "-"}</p>
-        <p><strong>Nakliye:</strong> ${order.shippingOwner || "-"}</p>
-        <p><strong>Kalem:</strong> ${order.items.length}</p>
-        <p><strong>Girilme:</strong> ${formatDateTime(order.submittedAt)}</p>
-        <p><strong>Kontrol:</strong> ${order.reviewStatus === "reviewed" ? formatDateTime(order.reviewedAt) : "Bekliyor"}</p>
-      </div>
-      <div class="admin-order-section">
-        <h4>Siparis notu</h4>
-        <p>${order.note || "-"}</p>
-      </div>
-      ${renderOrderItemsDetails(order)}
-      ${renderRevisionSummary(order)}
     </article>
   `;
 }
@@ -648,6 +1140,21 @@ function renderAdminOrderCard(order, canApprove) {
 async function approveOrder(orderId) {
   await apiRequest(`./api/orders/${orderId}/approve`, { method: "POST" });
   await refreshState();
+  renderAll();
+}
+
+async function rejectOrder(orderId) {
+  await apiRequest(`./api/orders/${orderId}/reject`, { method: "POST" });
+  await refreshState();
+  renderAll();
+}
+
+async function deleteOrder(orderId) {
+  await apiRequest(`./api/orders/${orderId}`, getDeleteRequestOptions());
+  await refreshState();
+  if (hasElement(els.orderIdInput) && els.orderIdInput.value === orderId) {
+    clearOrderForm();
+  }
   renderAll();
 }
 
@@ -696,6 +1203,7 @@ async function handleCustomerCreate(event) {
   event.preventDefault();
   const formData = new FormData(els.customerForm);
   const name = formData.get("customerName")?.toString().trim();
+  const erpCode = formData.get("erpCode")?.toString().trim();
   const repId = formData.get("repId")?.toString();
   const dealerId = formData.get("dealerId")?.toString();
   const companyId = formData.get("companyId")?.toString();
@@ -706,7 +1214,7 @@ async function handleCustomerCreate(event) {
 
   await apiRequest("./api/customers", {
     method: "POST",
-    body: JSON.stringify({ name, repId, dealerId, companyId })
+    body: JSON.stringify({ name, erpCode, repId, dealerId, companyId })
   });
 
   await refreshState();
@@ -718,13 +1226,14 @@ async function handleAssignmentUpdate(event) {
   event.preventDefault();
   const customer = byId(state.customers, els.assignmentCustomerSelect.value);
   const repId = els.assignmentRepSelect.value;
+  const erpCode = els.assignmentCustomerErpCodeInput.value.trim();
   if (!customer || !repId) {
     return;
   }
 
   await apiRequest(`./api/customers/${customer.id}/assignment`, {
     method: "PUT",
-    body: JSON.stringify({ repId })
+    body: JSON.stringify({ repId, erpCode })
   });
 
   await refreshState();
@@ -737,7 +1246,112 @@ async function handleCustomerRemove() {
     return;
   }
 
-  await apiRequest(`./api/customers/${customerId}`, { method: "DELETE" });
+  await apiRequest(`./api/customers/${customerId}`, getDeleteRequestOptions());
+  await refreshState();
+  renderAll();
+}
+
+async function handleSalesRepCreate(event) {
+  event.preventDefault();
+  const formData = new FormData(els.salesRepForm);
+  const payload = {
+    name: formData.get("name")?.toString().trim(),
+    username: formData.get("username")?.toString().trim().toLowerCase(),
+    salesmanCode: formData.get("salesmanCode")?.toString().trim().toUpperCase(),
+    password: formData.get("password")?.toString().trim(),
+    region: formData.get("region")?.toString().trim(),
+    companyId: formData.get("companyId")?.toString()
+  };
+
+  if (!payload.name || !payload.username || !payload.password || !payload.region || !payload.companyId) {
+    return;
+  }
+
+  await apiRequest("./api/sales-reps", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+  await refreshState();
+  els.salesRepForm.reset();
+  renderAll();
+}
+
+async function handleSalesRepUpdate(event) {
+  event.preventDefault();
+  const repId = els.salesRepEditSelect.value;
+  const payload = {
+    name: els.salesRepEditNameInput.value.trim(),
+    username: els.salesRepEditUsernameInput.value.trim().toLowerCase(),
+    salesmanCode: els.salesRepEditCodeInput.value.trim().toUpperCase(),
+    password: els.salesRepEditPasswordInput.value.trim(),
+    region: els.salesRepEditRegionInput.value.trim(),
+    companyId: els.salesRepEditCompanySelect.value
+  };
+
+  if (!repId || !payload.name || !payload.username || !payload.password || !payload.region || !payload.companyId) {
+    return;
+  }
+
+  await apiRequest(`./api/sales-reps/${repId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload)
+  });
+
+  await refreshState();
+  await loadSalesRepIntoEditForm(repId);
+  renderAll();
+}
+
+async function handleSalesRepRemove() {
+  const repId = els.salesRepDeleteSelect.value;
+  if (!repId) {
+    return;
+  }
+
+  await apiRequest(`./api/sales-reps/${repId}`, getDeleteRequestOptions());
+  await refreshState();
+  salesRepEditCacheId = "";
+  renderAll();
+}
+
+async function handleCustomerCodeImport() {
+  await apiRequest("./api/customer-codes/import", { method: "POST" });
+  await refreshState();
+  syncAssignmentCustomerMeta();
+  renderAll();
+}
+
+async function handleProductCreate(event) {
+  event.preventDefault();
+  const formData = new FormData(els.productForm);
+  const payload = {
+    sku: formData.get("sku")?.toString().trim(),
+    name: formData.get("name")?.toString().trim(),
+    unit: formData.get("unit")?.toString().trim()
+  };
+
+  if (!payload.sku || !payload.name) {
+    return;
+  }
+
+  await apiRequest("./api/products", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+  await refreshState();
+  els.productForm.reset();
+  renderAll();
+}
+
+async function handleProductRemove() {
+  const productId = els.productDeleteSelect.value;
+  if (!productId) {
+    return;
+  }
+
+  await apiRequest(`./api/products/${productId}`, getDeleteRequestOptions());
   await refreshState();
   renderAll();
 }
@@ -811,13 +1425,55 @@ function bindEvents() {
   if (hasElement(els.assignmentForm)) {
     els.assignmentForm.addEventListener("submit", handleAssignmentUpdate);
   }
+  if (hasElement(els.assignmentCustomerSelect)) {
+    els.assignmentCustomerSelect.addEventListener("change", syncAssignmentCustomerMeta);
+  }
   if (hasElement(els.removeCustomerButton)) {
     els.removeCustomerButton.addEventListener("click", handleCustomerRemove);
+  }
+  if (hasElement(els.importCustomerCodesButton)) {
+    els.importCustomerCodesButton.addEventListener("click", handleCustomerCodeImport);
+  }
+  if (hasElement(els.salesRepForm)) {
+    els.salesRepForm.addEventListener("submit", handleSalesRepCreate);
+  }
+  if (hasElement(els.salesRepEditForm)) {
+    els.salesRepEditForm.addEventListener("submit", handleSalesRepUpdate);
+  }
+  if (hasElement(els.salesRepEditSelect)) {
+    els.salesRepEditSelect.addEventListener("change", () => {
+      salesRepEditCacheId = "";
+      if (hasElement(els.salesRepDeleteSelect)) {
+        els.salesRepDeleteSelect.value = els.salesRepEditSelect.value;
+      }
+      loadSalesRepIntoEditForm(els.salesRepEditSelect.value).catch(console.error);
+    });
+  }
+  if (hasElement(els.removeSalesRepButton)) {
+    els.removeSalesRepButton.addEventListener("click", handleSalesRepRemove);
+  }
+  if (hasElement(els.productForm)) {
+    els.productForm.addEventListener("submit", handleProductCreate);
+  }
+  if (hasElement(els.removeProductButton)) {
+    els.removeProductButton.addEventListener("click", handleProductRemove);
   }
   if (hasElement(els.orderCustomerSelect)) {
     els.orderCustomerSelect.addEventListener("change", () => {
       renderCustomerSnapshot();
       toggleOrderLinesAvailability();
+    });
+  }
+  if (hasElement(els.adminReviewedSearchInput)) {
+    els.adminReviewedSearchInput.addEventListener("input", () => {
+      adminReviewedSearch = els.adminReviewedSearchInput.value.trim();
+      renderAdminOrdersList();
+    });
+  }
+  if (hasElement(els.salesOrdersSearchInput)) {
+    els.salesOrdersSearchInput.addEventListener("input", () => {
+      salesOrdersSearch = els.salesOrdersSearchInput.value.trim();
+      renderOrdersList();
     });
   }
   if (hasElement(els.addLineButton)) {
@@ -855,6 +1511,7 @@ function renderAll() {
   renderSessionMeta();
   renderMetrics();
   renderAdminPanel();
+  renderDeletedRecordsPage();
   renderSalesPanel();
 }
 

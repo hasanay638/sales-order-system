@@ -17,7 +17,8 @@ app.use(express.static(FRONTEND_DIR));
 function runPython(script, payload) {
   const result = spawnSync('python', [script], {
     input: payload ? JSON.stringify(payload) : undefined,
-    encoding: 'utf-8'
+    encoding: 'utf-8',
+    maxBuffer: 16 * 1024 * 1024
   });
 
   if (result.status !== 0) {
@@ -71,6 +72,14 @@ app.post('/api/customers', (req, res, next) => {
   }
 });
 
+app.post('/api/customer-codes/import', (_req, res, next) => {
+  try {
+    res.json(runPython(GATEWAY_SCRIPT, { action: 'import_customer_codes' }));
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.put('/api/customers/:id/assignment', (req, res, next) => {
   try {
     res.json(runPython(GATEWAY_SCRIPT, { action: 'update_customer_assignment', customerId: req.params.id, ...req.body }));
@@ -82,6 +91,54 @@ app.put('/api/customers/:id/assignment', (req, res, next) => {
 app.delete('/api/customers/:id', (req, res, next) => {
   try {
     res.json(runPython(GATEWAY_SCRIPT, { action: 'delete_customer', customerId: req.params.id }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/sales-reps', (req, res, next) => {
+  try {
+    res.json(runPython(GATEWAY_SCRIPT, { action: 'create_sales_rep', ...req.body }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/sales-reps/:id', (req, res, next) => {
+  try {
+    res.json(runPython(GATEWAY_SCRIPT, { action: 'get_sales_rep', repId: req.params.id }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put('/api/sales-reps/:id', (req, res, next) => {
+  try {
+    res.json(runPython(GATEWAY_SCRIPT, { action: 'update_sales_rep', repId: req.params.id, ...req.body }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/sales-reps/:id', (req, res, next) => {
+  try {
+    res.json(runPython(GATEWAY_SCRIPT, { action: 'delete_sales_rep', repId: req.params.id }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/products', (req, res, next) => {
+  try {
+    res.json(runPython(GATEWAY_SCRIPT, { action: 'create_product', ...req.body }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/products/:id', (req, res, next) => {
+  try {
+    res.json(runPython(GATEWAY_SCRIPT, { action: 'delete_product', productId: req.params.id }));
   } catch (error) {
     next(error);
   }
@@ -106,6 +163,22 @@ app.put('/api/orders/:id', (req, res, next) => {
 app.post('/api/orders/:id/approve', (req, res, next) => {
   try {
     res.json(runPython(GATEWAY_SCRIPT, { action: 'approve_order', orderId: req.params.id, now: new Date().toISOString() }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/orders/:id/reject', (req, res, next) => {
+  try {
+    res.json(runPython(GATEWAY_SCRIPT, { action: 'reject_order', orderId: req.params.id, now: new Date().toISOString() }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/orders/:id', (req, res, next) => {
+  try {
+    res.json(runPython(GATEWAY_SCRIPT, { action: 'delete_order', orderId: req.params.id }));
   } catch (error) {
     next(error);
   }

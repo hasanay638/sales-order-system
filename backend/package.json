@@ -1,12 +1,7 @@
-{
-  "name": "sales-order-system-portal",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Satis ekibi siparis portali",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^5.2.1"
-  }
-}
+admin / admin - Merkez Admin
+duran.ozcifci / 123456 - Duran Ozcifci
+erkan.turkoglu / 123456 - Erkan Turkoglu
+hasan.ay / 123456 - Hasan Ay
+kerim.turkay / 123456 - Kerim Turkay
+melih.can.pisirici / 123456 - Melih Can Pisirici
+ibrahim.tunc / 123456 - Ibrahim Tunc

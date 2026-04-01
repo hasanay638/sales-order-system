@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Silinenler</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="brand-bar">
+      <div class="brand-session">
+        <span class="eyebrow brand-eyebrow">Giris yapan kisi</span>
+        <strong id="sessionUserName">Kullanici</strong>
+      </div>
+      <div class="brand-actions">
+        <a class="admin-link-button small-link" href="./order-create.html">Ana ekrana don</a>
+        <a class="admin-link-button small-link" href="./admin-management.html">Yonetim</a>
+        <button id="resetDataButton" class="ghost-button" type="button">Verileri yenile</button>
+        <button id="logoutButton" class="ghost-button" type="button">Cikis yap</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section id="deletedRecordsPanel" class="panel">
+        <div class="panel-title-row">
+          <div>
+            <p class="eyebrow">Arsiv</p>
+            <h2>Silinenler sayfasi</h2>
+          </div>
+        </div>
+        <p id="sessionMeta" class="muted"></p>
+        <div id="deletedRecordsTabs" class="tab-row"></div>
+        <div id="deletedRecordsContent" class="orders-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./bootstrap.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

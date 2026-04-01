@@ -97,16 +97,6 @@ textarea {
   box-shadow: var(--shadow);
 }
 
-.brand-logo {
-  display: block;
-  width: auto;
-  height: 58px;
-  flex: 0 0 auto;
-  background: #fff;
-  border-radius: 14px;
-  padding: 0.35rem 0.6rem;
-}
-
 .brand-session {
   display: grid;
   gap: 0.25rem;
@@ -361,7 +351,8 @@ textarea {
 .metrics-grid,
 .admin-grid,
 .sales-layout,
-.admin-orders-grid {
+.admin-orders-grid,
+.sales-orders-column {
   display: grid;
   gap: 1rem;
 }
@@ -398,12 +389,23 @@ textarea {
 
 .admin-shortcuts {
   display: grid;
-  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
   margin-bottom: 1rem;
+}
+
+.admin-shortcuts .admin-link-button {
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
 }
 
 .sales-layout {
   grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
+}
+
+.sales-orders-column {
+  align-content: start;
 }
 
 .admin-orders-grid {
@@ -467,6 +469,11 @@ textarea {
   color: #8c581d;
 }
 
+.tag-danger {
+  background: rgba(170, 46, 46, 0.14);
+  color: #8f2424;
+}
+
 .ghost-button {
   background: linear-gradient(180deg, rgba(115, 131, 45, 0.1), rgba(115, 131, 45, 0.16));
   color: var(--accent-dark);
@@ -486,8 +493,17 @@ textarea {
   background: #8f2424;
 }
 
+.inline-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
 .table-wrap {
   overflow: auto;
+}
+
+.list-toggle-button {
+  margin-top: 0.9rem;
 }
 
 table {
@@ -532,9 +548,50 @@ th, td {
   gap: 0.8rem;
 }
 
+input[type="search"] {
+  margin-bottom: 0.9rem;
+}
+
 .order-card {
   background: var(--panel-strong);
   border: 1px solid rgba(115, 131, 45, 0.12);
+}
+
+.admin-orders-grid .order-card {
+  padding: 0.8rem 1rem;
+  border-radius: 20px;
+}
+
+.sales-order-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: stretch;
+}
+
+.sales-order-summary-main {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.sales-order-actions {
+  gap: 0.45rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 0.1rem;
+}
+
+.sales-order-summary button {
+  padding: 0.38rem 0.7rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  min-height: 34px;
+  box-shadow: none;
+}
+
+.sales-order-details {
+  margin-top: 0.7rem;
 }
 
 .order-card-top,
@@ -560,6 +617,64 @@ th, td {
   margin-bottom: 0.9rem;
 }
 
+.admin-order-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: stretch;
+}
+
+.admin-order-summary-main {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.75fr) minmax(180px, 1.35fr) minmax(90px, 0.45fr);
+  gap: 0.6rem;
+  align-items: start;
+}
+
+.admin-order-summary-main strong,
+.admin-order-summary-main span {
+  min-width: 0;
+}
+
+.admin-order-summary-main span:not(.tag) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-order-summary-main span:nth-child(2) {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.35;
+}
+
+.admin-order-details {
+  margin-top: 0.7rem;
+}
+
+.admin-order-actions {
+  gap: 0.45rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 0.15rem;
+}
+
+.admin-order-summary button,
+.admin-order-summary .tag {
+  padding: 0.38rem 0.7rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  min-height: 34px;
+  box-shadow: none;
+}
+
+.admin-order-summary-main strong,
+.admin-order-summary-main span:not(.tag) {
+  font-size: 0.98rem;
+}
+
 .admin-order-section {
   margin-top: 0.9rem;
   padding: 0.9rem;
@@ -582,6 +697,34 @@ th, td {
   border-color: rgba(212, 138, 52, 0.2);
 }
 
+.tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.deleted-record-card {
+  padding: 1rem 1.1rem;
+}
+
+.deleted-record-card ul {
+  margin-top: 0.6rem;
+}
+
+.deleted-record-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.deleted-by-text {
+  margin: 0.35rem 0 0;
+  color: #b42626;
+  font-weight: 700;
+}
+
 .revision-list {
   margin: 0;
   padding-left: 1rem;
@@ -600,7 +743,8 @@ th, td {
   .admin-grid,
   .admin-orders-grid,
   .metrics-grid,
-  .hero-feature-grid {
+  .hero-feature-grid,
+  .admin-shortcuts {
     grid-template-columns: 1fr;
   }
 
@@ -624,6 +768,14 @@ th, td {
   }
 
   .admin-order-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-order-summary {
+    align-items: stretch;
+  }
+
+  .admin-order-summary-main {
     grid-template-columns: 1fr;
   }
 

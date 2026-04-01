@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musteriler</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="brand-bar">
+      <div class="brand-session">
+        <span class="eyebrow brand-eyebrow">Giris yapan kisi</span>
+        <strong id="sessionUserName">Kullanici</strong>
+      </div>
+      <div class="brand-actions">
+        <a class="admin-link-button small-link" href="./order-create.html">Ana ekrana don</a>
+        <a class="admin-link-button small-link" href="./deleted-records.html">Silinenler</a>
+        <button id="logoutButton" class="ghost-button" type="button">Cikis yap</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="panel">
+        <div class="panel-title-row">
+          <h2>Musteriler</h2>
+          <button id="importCustomerCodesButton" class="ghost-button" type="button">Kodlari Excel'den cek</button>
+        </div>
+        <p id="sessionMeta" class="muted"></p>
+
+        <div class="admin-grid">
+          <article class="subpanel">
+            <h3>Yeni musteri</h3>
+            <form id="customerForm" class="stack-form">
+              <label>
+                Musteri adi
+                <input id="customerNameInput" name="customerName" type="text" placeholder="Musteri adi" required>
+              </label>
+              <label>
+                Musteri kodu
+                <input id="customerErpCodeInput" name="erpCode" type="text" placeholder="120.01.Y.42.044">
+              </label>
+              <label>
+                Firma
+                <select id="customerCompanySelect" name="companyId" required></select>
+              </label>
+              <label>
+                Bayi
+                <select id="customerDealerSelect" name="dealerId" required></select>
+              </label>
+              <label>
+                Sorumlu satici
+                <select id="customerRepSelect" name="repId" required></select>
+              </label>
+              <button type="submit">Kaydet</button>
+            </form>
+          </article>
+
+          <article class="subpanel">
+            <h3>Musteri duzenle</h3>
+            <form id="assignmentForm" class="stack-form">
+              <label>
+                Musteri sec
+                <select id="assignmentCustomerSelect" name="customerId" required></select>
+              </label>
+              <label>
+                Musteri kodu
+                <input id="assignmentCustomerErpCodeInput" name="erpCode" type="text" placeholder="120.01.Y.42.044">
+              </label>
+              <label>
+                Mevcut satisci
+                <input id="assignmentCurrentRepInput" type="text" placeholder="Mevcut satisci" readonly>
+              </label>
+              <label>
+                Sorumlu satici
+                <select id="assignmentRepSelect" name="repId" required></select>
+              </label>
+              <div class="button-row">
+                <button type="submit">Guncelle</button>
+                <button id="removeCustomerButton" class="danger-button" type="button">Sil</button>
+              </div>
+              <p class="muted">Silinen musteriler aktif listeden kalkar ve Silinenler sayfasina tasinir.</p>
+            </form>
+          </article>
+        </div>
+
+        <article class="subpanel">
+          <h3>Musteri listesi</h3>
+          <div id="customerTable" class="table-wrap"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="./bootstrap.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

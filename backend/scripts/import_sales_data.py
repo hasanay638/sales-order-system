@@ -1,4 +1,5 @@
 ﻿import json
+import os
 import re
 import sqlite3
 import unicodedata
@@ -10,7 +11,13 @@ import xlrd
 ROOT = Path(__file__).resolve().parents[2]
 CUSTOMERS_XLS_PATH = Path(r"C:\Users\Hasan AY\Downloads\SATISCI.xls")
 PRODUCTS_XLS_PATH = next(Path(r"C:\Users\Hasan AY\Downloads").glob("ÜRÜNLER.xls"))
-DB_PATH = Path.home() / "AppData" / "Local" / "sales-order-system" / "sales-system-v2.sqlite"
+CUSTOMER_CODES_XLS_PATH = sorted(Path(r"C:\Users\Hasan AY\Downloads").glob("*kodu*.xls"))[-1]
+DB_PATH = Path(
+    os.environ.get(
+        "TEMP",
+        os.environ.get("LOCALAPPDATA", str(ROOT / "backend" / "data"))
+    )
+) / "sales-order-system" / "sales-system-v2.sqlite"
 BOOTSTRAP_JS_PATH = ROOT / "frontend" / "bootstrap.js"
 
 
@@ -40,6 +47,26 @@ def clean_text(value) -> str:
 
 def make_id(prefix: str, value: str) -> str:
     return f"{prefix}-{slugify(value)}"
+
+
+def build_salesman_code(name: str) -> str:
+    cleaned = clean_text(name)
+    if not cleaned:
+        return ""
+
+    normalized = unicodedata.normalize("NFKD", cleaned).encode("ascii", "ignore").decode("ascii")
+    parts = [part for part in re.split(r"[^A-Za-z0-9]+", normalized.upper()) if part]
+    if not parts:
+        return ""
+
+    return f"{parts[0][0]}.{parts[-1]}"
+
+
+def normalize_key(value: str) -> str:
+    cleaned = clean_text(value)
+    normalized = unicodedata.normalize("NFKD", cleaned).encode("ascii", "ignore").decode("ascii").lower()
+    normalized = re.sub(r"[^a-z0-9]+", " ", normalized)
+    return " ".join(normalized.split())
 
 
 def read_customer_rows():
@@ -86,7 +113,26 @@ def read_product_rows():
     return rows
 
 
-def build_state(customer_rows, product_rows):
+def read_customer_code_rows():
+    book = xlrd.open_workbook(str(CUSTOMER_CODES_XLS_PATH))
+    sheet = book.sheet_by_index(0)
+    rows = []
+
+    for row_index in range(1, sheet.nrows):
+        erp_code = clean_text(sheet.cell_value(row_index, 0))
+        customer_name = clean_text(sheet.cell_value(row_index, 1))
+        if not erp_code or not customer_name:
+            continue
+        rows.append({
+            "erpCode": erp_code,
+            "customerName": customer_name,
+            "normalizedName": normalize_key(customer_name),
+        })
+
+    return rows
+
+
+def build_state(customer_rows, product_rows, customer_code_rows):
     company = {"id": "company-yemcibey", "name": "Yemcibey"}
     users = [{
         "id": "admin-1",
@@ -96,6 +142,7 @@ def build_state(customer_rows, product_rows):
         "role": "admin",
         "companyId": company["id"],
         "region": "Tum Bolgeler",
+        "salesmanCode": "ADMIN",
     }]
     dealers = []
     customers = []
@@ -124,6 +171,7 @@ def build_state(customer_rows, product_rows):
                 "role": "sales",
                 "companyId": company["id"],
                 "region": row["city"] or "Belirtilmedi",
+                "salesmanCode": build_salesman_code(rep_name),
             })
 
         dealer_key = f'{row["city"]}::{row["district"]}::{rep_name}'
@@ -149,7 +197,12 @@ def build_state(customer_rows, product_rows):
             "repId": rep_id,
             "city": row["city"],
             "district": row["district"],
+            "erpCode": "",
         })
+
+    code_map = {row["normalizedName"]: row["erpCode"] for row in customer_code_rows}
+    for customer in customers:
+        customer["erpCode"] = code_map.get(normalize_key(customer["name"]), "")
 
     return {
         "companies": [company],
@@ -158,6 +211,7 @@ def build_state(customer_rows, product_rows):
         "customers": customers,
         "inventory": product_rows,
         "orders": [],
+        "deletedRecords": [],
     }
 
 
@@ -179,6 +233,18 @@ def write_database(state):
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL
         );
+        CREATE TABLE app_meta (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
+        CREATE TABLE deleted_records (
+            id TEXT PRIMARY KEY,
+            entity_type TEXT NOT NULL,
+            entity_id TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            payload TEXT NOT NULL,
+            deleted_at TEXT NOT NULL
+        );
         CREATE TABLE users (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -186,7 +252,8 @@ def write_database(state):
             password TEXT NOT NULL,
             role TEXT NOT NULL,
             company_id TEXT NOT NULL,
-            region TEXT
+            region TEXT,
+            salesman_code TEXT
         );
         CREATE TABLE dealers (
             id TEXT PRIMARY KEY,
@@ -203,7 +270,8 @@ def write_database(state):
             dealer_id TEXT NOT NULL,
             rep_id TEXT NOT NULL,
             city TEXT,
-            district TEXT
+            district TEXT,
+            erp_code TEXT
         );
         CREATE TABLE inventory (
             id TEXT PRIMARY KEY,
@@ -213,6 +281,7 @@ def write_database(state):
         );
         CREATE TABLE orders (
             id TEXT PRIMARY KEY,
+            order_number INTEGER,
             company_id TEXT NOT NULL,
             rep_id TEXT NOT NULL,
             customer_id TEXT NOT NULL,
@@ -226,7 +295,12 @@ def write_database(state):
             reviewed_at TEXT,
             created_at TEXT,
             updated_at TEXT,
-            revision_summary TEXT DEFAULT '[]'
+            revision_summary TEXT DEFAULT '[]',
+            erp_order_number TEXT,
+            erp_doc_track_nr TEXT,
+            erp_customer_code TEXT,
+            erp_order_date TEXT,
+            erp_payload TEXT DEFAULT '{}'
         );
         CREATE TABLE order_items (
             id TEXT PRIMARY KEY,
@@ -234,6 +308,8 @@ def write_database(state):
             product_id TEXT NOT NULL,
             quantity REAL NOT NULL,
             price REAL NOT NULL,
+            erp_line_ref TEXT,
+            erp_payload TEXT DEFAULT '{}',
             FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE
         );
         """
@@ -242,10 +318,11 @@ def write_database(state):
     cur.executemany("INSERT INTO companies VALUES (?, ?)", [
         (company["id"], company["name"]) for company in state["companies"]
     ])
-    cur.executemany("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?)", [
+    cur.execute("INSERT INTO app_meta VALUES ('order_sequence', '0')")
+    cur.executemany("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [
         (
             user["id"], user["name"], user["username"], user["password"],
-            user["role"], user["companyId"], user["region"]
+            user["role"], user["companyId"], user["region"], user.get("salesmanCode", "")
         ) for user in state["users"]
     ])
     cur.executemany("INSERT INTO dealers VALUES (?, ?, ?, ?, ?, ?)", [
@@ -254,10 +331,10 @@ def write_database(state):
             dealer.get("city", ""), dealer.get("district", "")
         ) for dealer in state["dealers"]
     ])
-    cur.executemany("INSERT INTO customers VALUES (?, ?, ?, ?, ?, ?, ?)", [
+    cur.executemany("INSERT INTO customers VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [
         (
             customer["id"], customer["name"], customer["companyId"], customer["dealerId"],
-            customer["repId"], customer.get("city", ""), customer.get("district", "")
+            customer["repId"], customer.get("city", ""), customer.get("district", ""), customer.get("erpCode", "")
         ) for customer in state["customers"]
     ])
     cur.executemany("INSERT INTO inventory VALUES (?, ?, ?, ?)", [
@@ -275,19 +352,26 @@ def write_bootstrap(state):
 
 
 def main():
+    result = rebuild_database()
+    print(json.dumps(result, ensure_ascii=False))
+
+
+def rebuild_database():
     customer_rows = read_customer_rows()
     product_rows = read_product_rows()
-    state = build_state(customer_rows, product_rows)
+    customer_code_rows = read_customer_code_rows()
+    state = build_state(customer_rows, product_rows, customer_code_rows)
     write_database(state)
     write_bootstrap(state)
-    print(json.dumps({
+    return {
         "ok": True,
         "customers": len(state["customers"]),
         "salesReps": len(state["users"]) - 1,
         "products": len(state["inventory"]),
+        "customerCodes": len([customer for customer in state["customers"] if customer.get("erpCode")]),
         "database": str(DB_PATH),
         "bootstrap": str(BOOTSTRAP_JS_PATH),
-    }, ensure_ascii=False))
+    }
 
 
 if __name__ == "__main__":

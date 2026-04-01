@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urunler</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="brand-bar">
+      <div class="brand-session">
+        <span class="eyebrow brand-eyebrow">Giris yapan kisi</span>
+        <strong id="sessionUserName">Kullanici</strong>
+      </div>
+      <div class="brand-actions">
+        <a class="admin-link-button small-link" href="./order-create.html">Ana ekrana don</a>
+        <a class="admin-link-button small-link" href="./deleted-records.html">Silinenler</a>
+        <button id="logoutButton" class="ghost-button" type="button">Cikis yap</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="panel">
+        <div class="panel-title-row">
+          <h2>Urunler</h2>
+        </div>
+        <p id="sessionMeta" class="muted"></p>
+
+        <div class="admin-grid">
+          <article class="subpanel">
+            <h3>Yeni urun</h3>
+            <form id="productForm" class="stack-form">
+              <label>
+                Stok kodu
+                <input id="productSkuInput" name="sku" type="text" placeholder="STK-001" required>
+              </label>
+              <label>
+                Urun adi
+                <input id="productNameInput" name="name" type="text" placeholder="Urun adi" required>
+              </label>
+              <label>
+                Birim
+                <input id="productUnitInput" name="unit" type="text" placeholder="adet">
+              </label>
+              <button type="submit">Kaydet</button>
+            </form>
+          </article>
+
+          <article class="subpanel">
+            <h3>Urun sil</h3>
+            <form class="stack-form">
+              <label>
+                Urun sec
+                <select id="productDeleteSelect" name="productId" required></select>
+              </label>
+              <p class="muted">Aktif sipariste olmayan urunler silindiginde Silinenler sayfasina tasinir.</p>
+              <button id="removeProductButton" class="danger-button" type="button">Sil</button>
+            </form>
+          </article>
+        </div>
+
+        <article class="subpanel">
+          <h3>Urun listesi</h3>
+          <div id="productTable" class="table-wrap"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="./bootstrap.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
