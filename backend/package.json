@@ -5,5 +5,8 @@
   "description": "Satis ekibi siparis portali",
   "scripts": {
     "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
   }
 }

@@ -1,79 +1,48 @@
-﻿const STORAGE_KEY = "sales-order-system-state";
-const SESSION_KEY = "sales-order-system-user";
+﻿const SESSION_KEY = "sales-order-system-user";
 const AUTH_KEY = "sales-order-system-auth";
 
-const seedState = {
-  companies: [
-    { id: "company-akdeniz", name: "Akdeniz Gida" },
-    { id: "company-marmara", name: "Marmara Dagitim" }
-  ],
-  users: [
-    { id: "admin-1", name: "Merkez Admin", username: "admin", role: "admin", companyId: "company-akdeniz", region: "Tum Bolgeler" },
-    { id: "rep-1", name: "Ayse Demir", username: "ayse", role: "sales", companyId: "company-akdeniz", region: "Ege" },
-    { id: "rep-2", name: "Mehmet Kaya", username: "mehmet", role: "sales", companyId: "company-akdeniz", region: "Ic Anadolu" },
-    { id: "rep-3", name: "Elif Acar", username: "elif", role: "sales", companyId: "company-marmara", region: "Marmara" }
-  ],
-  dealers: [
-    { id: "dealer-1", name: "Izmir Kuzey Bayi", companyId: "company-akdeniz", repId: "rep-1" },
-    { id: "dealer-2", name: "Manisa Merkez Bayi", companyId: "company-akdeniz", repId: "rep-1" },
-    { id: "dealer-3", name: "Ankara Batikent Bayi", companyId: "company-akdeniz", repId: "rep-2" },
-    { id: "dealer-4", name: "Bursa Nilufer Bayi", companyId: "company-marmara", repId: "rep-3" }
-  ],
-  customers: [
-    { id: "customer-1", name: "Ege Tavukculuk", companyId: "company-akdeniz", dealerId: "dealer-1", repId: "rep-1" },
-    { id: "customer-2", name: "Yesilova Ciftlik", companyId: "company-akdeniz", dealerId: "dealer-2", repId: "rep-1" },
-    { id: "customer-3", name: "Basak Yem", companyId: "company-akdeniz", dealerId: "dealer-3", repId: "rep-2" },
-    { id: "customer-4", name: "Uludag Satis Noktasi", companyId: "company-marmara", dealerId: "dealer-4", repId: "rep-3" }
-  ],
-  inventory: [
-    { id: "product-1", name: "Yem 50 kg", sku: "YEM-50", unit: "cuval" },
-    { id: "product-2", name: "Yem 25 kg", sku: "YEM-25", unit: "cuval" },
-    { id: "product-3", name: "Vitamin Katkisi", sku: "VIT-10", unit: "koli" },
-    { id: "product-4", name: "Misir Kirma", sku: "MIS-01", unit: "ton" }
-  ],
-  orders: [
-    {
-      id: "order-1",
-      companyId: "company-akdeniz",
-      repId: "rep-1",
-      customerId: "customer-1",
-      deliveryDate: "2026-04-04",
-      paymentTerm: "30 gun",
-      shippingOwner: "Fabrika",
-      reviewStatus: "pending",
-      submissionLabel: "Yeni Siparis",
-      submittedAt: "2026-04-01T09:00:00",
-      note: "Sabah sevkiyat tercih ediliyor.",
-      createdAt: "2026-03-30T09:00:00",
-      updatedAt: "2026-03-30T09:00:00",
-      items: [
-        { id: "line-1", productId: "product-1", quantity: 25, price: 840 },
-        { id: "line-2", productId: "product-3", quantity: 4, price: 320 }
-      ]
-    }
-  ]
+const defaultSeedState = {
+  companies: [],
+  users: [],
+  dealers: [],
+  customers: [],
+  inventory: [],
+  orders: []
 };
+
+const seedState = window.BOOTSTRAP_STATE || defaultSeedState;
 
 const els = {};
 let state = loadState();
 let currentUserId = loadSessionUserId();
 
 function loadState() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    return structuredClone(seedState);
-  }
-
-  try {
-    const parsed = JSON.parse(raw);
-    return { ...structuredClone(seedState), ...parsed };
-  } catch (error) {
-    return structuredClone(seedState);
-  }
+  return structuredClone(seedState);
 }
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+async function apiRequest(url, options = {}) {
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    },
+    ...options
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.message || "API istegi basarisiz oldu.");
+  }
+
+  return response.status === 204 ? null : response.json();
+}
+
+async function refreshState() {
+  state = await apiRequest("./api/bootstrap");
+  normalizeOrders();
 }
 
 function normalizeOrders() {
@@ -90,7 +59,7 @@ function normalizeOrders() {
 function loadSessionUserId() {
   const isAuthenticated = localStorage.getItem(AUTH_KEY) === "true";
   const stored = localStorage.getItem(SESSION_KEY);
-  if (isAuthenticated && stored && seedState.users.some((user) => user.id === stored)) {
+  if (isAuthenticated && stored && (seedState.users || []).some((user) => user.id === stored)) {
     return stored;
   }
 
@@ -255,6 +224,58 @@ function summarizeOrderChanges(previousOrder, nextPayload) {
   return changes;
 }
 
+function renderOrderItemsDetails(order) {
+  if (!order.items?.length) {
+    return `<div class="muted-card admin-order-section">Urun kalemi yok.</div>`;
+  }
+
+  const rows = order.items.map((item) => {
+    const product = getProduct(item.productId);
+    const lineTotal = Number(item.quantity) * Number(item.price);
+    return `
+      <tr>
+        <td>${product?.name || "Urun"}</td>
+        <td>${item.quantity}</td>
+        <td>${formatMoney(item.price)}</td>
+        <td>${formatMoney(lineTotal)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  return `
+    <div class="admin-order-section">
+      <h4>Urun detaylari</h4>
+      <div class="table-wrap">
+        <table class="compact-table">
+          <thead>
+            <tr>
+              <th>Urun</th>
+              <th>Adet</th>
+              <th>Birim fiyat</th>
+              <th>Ara toplam</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderRevisionSummary(order) {
+  if (order.submissionLabel !== "Revize" || !order.revisionSummary?.length) {
+    return "";
+  }
+
+  const items = order.revisionSummary.map((change) => `<li>${change}</li>`).join("");
+  return `
+    <div class="admin-order-section revision-box">
+      <h4>Revize edilen alanlar</h4>
+      <ul class="revision-list">${items}</ul>
+    </div>
+  `;
+}
+
 function hydrateElements() {
   els.sessionUserName = document.getElementById("sessionUserName");
   els.sessionMeta = document.getElementById("sessionMeta");
@@ -290,6 +311,10 @@ function hydrateElements() {
   els.ordersList = document.getElementById("ordersList");
 }
 
+function hasElement(element) {
+  return Boolean(element);
+}
+
 function populateSelect(select, items, formatter, placeholder) {
   const options = [];
 
@@ -305,6 +330,10 @@ function populateSelect(select, items, formatter, placeholder) {
 }
 
 function renderMetrics() {
+  if (!hasElement(els.metricsGrid)) {
+    return;
+  }
+
   const currentUser = getCurrentUser();
   let cards;
 
@@ -339,25 +368,45 @@ function renderMetrics() {
 }
 
 function renderAdminPanel() {
-  const currentUser = getCurrentUser();
-  const showAdmin = currentUser.role === "admin";
-  els.adminPanel.classList.toggle("hidden", !showAdmin);
-
-  if (!showAdmin) {
+  if (!hasElement(els.adminPanel) && !hasElement(els.customerTable)) {
     return;
   }
 
-  populateSelect(els.customerCompanySelect, state.companies, (company) => company.name, null);
-  populateSelect(els.customerRepSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.region}`, null);
-  populateSelect(els.assignmentRepSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.region}`, null);
-  populateSelect(els.assignmentCustomerSelect, state.customers, (customer) => customer.name, null);
+  const currentUser = getCurrentUser();
+  const showAdmin = currentUser.role === "admin";
+  if (hasElement(els.adminPanel)) {
+    els.adminPanel.classList.toggle("hidden", !showAdmin);
+  }
 
-  syncDealerOptions();
-  if (!els.assignmentRepSelect.value && getRepUsers()[0]) {
+  if (!showAdmin) {
+    if (hasElement(els.customerTable) && !hasElement(els.adminPanel)) {
+      window.location.href = "./order-create.html";
+    }
+    return;
+  }
+
+  if (hasElement(els.customerCompanySelect)) {
+    populateSelect(els.customerCompanySelect, state.companies, (company) => company.name, null);
+  }
+  if (hasElement(els.customerRepSelect)) {
+    populateSelect(els.customerRepSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.region}`, null);
+  }
+  if (hasElement(els.assignmentRepSelect)) {
+    populateSelect(els.assignmentRepSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.region}`, null);
+  }
+  if (hasElement(els.assignmentCustomerSelect)) {
+    populateSelect(els.assignmentCustomerSelect, state.customers, (customer) => customer.name, null);
+  }
+
+  if (hasElement(els.customerDealerSelect) && hasElement(els.customerRepSelect)) {
+    syncDealerOptions();
+  }
+  if (hasElement(els.assignmentRepSelect) && !els.assignmentRepSelect.value && getRepUsers()[0]) {
     els.assignmentRepSelect.value = getRepUsers()[0].id;
   }
 
-  els.customerTable.innerHTML = `
+  if (hasElement(els.customerTable)) {
+    els.customerTable.innerHTML = `
     <table>
       <thead>
         <tr>
@@ -385,17 +434,28 @@ function renderAdminPanel() {
       </tbody>
     </table>
   `;
+  }
 
-  renderAdminOrdersList();
+  if (hasElement(els.adminPendingOrdersList) || hasElement(els.adminReviewedOrdersList)) {
+    renderAdminOrdersList();
+  }
 }
 
 function syncDealerOptions() {
+  if (!hasElement(els.customerRepSelect) || !hasElement(els.customerDealerSelect)) {
+    return;
+  }
+
   const selectedRepId = els.customerRepSelect.value || getRepUsers()[0]?.id;
   const repDealers = state.dealers.filter((dealer) => dealer.repId === selectedRepId);
   populateSelect(els.customerDealerSelect, repDealers, (dealer) => dealer.name, null);
 }
 
 function renderSalesPanel() {
+  if (!hasElement(els.salesPanel)) {
+    return;
+  }
+
   const currentUser = getCurrentUser();
   const showSales = currentUser.role === "sales";
   els.salesPanel.classList.toggle("hidden", !showSales);
@@ -465,6 +525,10 @@ function addLineItem(item = {}) {
 }
 
 function clearOrderForm() {
+  if (!hasElement(els.orderForm)) {
+    return;
+  }
+
   els.orderForm.reset();
   els.orderIdInput.value = "";
   els.shippingOwnerSelect.value = "Musteri";
@@ -519,6 +583,10 @@ function renderOrdersList() {
 }
 
 function renderAdminOrdersList() {
+  if (!hasElement(els.adminPendingOrdersList) || !hasElement(els.adminReviewedOrdersList)) {
+    return;
+  }
+
   const orders = [...state.orders].sort((left, right) => new Date(right.submittedAt || right.updatedAt) - new Date(left.submittedAt || left.updatedAt));
   const pendingOrders = orders.filter((order) => order.reviewStatus !== "reviewed");
   const reviewedOrders = orders.filter((order) => order.reviewStatus === "reviewed");
@@ -539,6 +607,7 @@ function renderAdminOrdersList() {
 function renderAdminOrderCard(order, canApprove) {
   const customer = byId(state.customers, order.customerId);
   const rep = byId(state.users, order.repId);
+  const dealer = customer ? getDealerForCustomer(customer) : null;
   const statusClass = order.submissionLabel === "Revize" ? "tag-warning" : "tag-info";
 
   return `
@@ -554,25 +623,31 @@ function renderAdminOrderCard(order, canApprove) {
         <span class="tag ${statusClass}">${order.submissionLabel || "Yeni Siparis"}</span>
         ${canApprove ? `<button type="button" data-order-approve="${order.id}">Onayla</button>` : `<span class="tag">Kontrol edildi</span>`}
       </div>
-      <p>Teslim: ${formatDate(order.deliveryDate)}</p>
-      <p>Vade: ${order.paymentTerm || "-"}</p>
-      <p>Nakliye: ${order.shippingOwner || "-"}</p>
-      <p>Kalem: ${order.items.length}</p>
-      <p>Not: ${order.note || "-"}</p>
+      <div class="admin-order-grid">
+        <p><strong>Musteri:</strong> ${customer?.name || "-"}</p>
+        <p><strong>Bayi:</strong> ${dealer?.name || "-"}</p>
+        <p><strong>Satici:</strong> ${rep?.name || "-"}</p>
+        <p><strong>Firma:</strong> ${getCompanyName(order.companyId)}</p>
+        <p><strong>Teslim:</strong> ${formatDate(order.deliveryDate)}</p>
+        <p><strong>Vade:</strong> ${order.paymentTerm || "-"}</p>
+        <p><strong>Nakliye:</strong> ${order.shippingOwner || "-"}</p>
+        <p><strong>Kalem:</strong> ${order.items.length}</p>
+        <p><strong>Girilme:</strong> ${formatDateTime(order.submittedAt)}</p>
+        <p><strong>Kontrol:</strong> ${order.reviewStatus === "reviewed" ? formatDateTime(order.reviewedAt) : "Bekliyor"}</p>
+      </div>
+      <div class="admin-order-section">
+        <h4>Siparis notu</h4>
+        <p>${order.note || "-"}</p>
+      </div>
+      ${renderOrderItemsDetails(order)}
+      ${renderRevisionSummary(order)}
     </article>
   `;
 }
 
-function approveOrder(orderId) {
-  const order = byId(state.orders, orderId);
-  if (!order) {
-    return;
-  }
-
-  order.reviewStatus = "reviewed";
-  order.submissionLabel = "Kontrol Edildi";
-  order.reviewedAt = new Date().toISOString();
-  saveState();
+async function approveOrder(orderId) {
+  await apiRequest(`./api/orders/${orderId}/approve`, { method: "POST" });
+  await refreshState();
   renderAll();
 }
 
@@ -617,7 +692,7 @@ function collectOrderItems() {
   return items;
 }
 
-function handleCustomerCreate(event) {
+async function handleCustomerCreate(event) {
   event.preventDefault();
   const formData = new FormData(els.customerForm);
   const name = formData.get("customerName")?.toString().trim();
@@ -629,20 +704,17 @@ function handleCustomerCreate(event) {
     return;
   }
 
-  state.customers.push({
-    id: createId("customer"),
-    name,
-    repId,
-    dealerId,
-    companyId
+  await apiRequest("./api/customers", {
+    method: "POST",
+    body: JSON.stringify({ name, repId, dealerId, companyId })
   });
 
-  saveState();
+  await refreshState();
   els.customerForm.reset();
   renderAll();
 }
 
-function handleAssignmentUpdate(event) {
+async function handleAssignmentUpdate(event) {
   event.preventDefault();
   const customer = byId(state.customers, els.assignmentCustomerSelect.value);
   const repId = els.assignmentRepSelect.value;
@@ -650,28 +722,27 @@ function handleAssignmentUpdate(event) {
     return;
   }
 
-  const repDealers = state.dealers.filter((dealer) => dealer.repId === repId);
-  customer.repId = repId;
-  if (!repDealers.some((dealer) => dealer.id === customer.dealerId) && repDealers[0]) {
-    customer.dealerId = repDealers[0].id;
-  }
-  saveState();
+  await apiRequest(`./api/customers/${customer.id}/assignment`, {
+    method: "PUT",
+    body: JSON.stringify({ repId })
+  });
+
+  await refreshState();
   renderAll();
 }
 
-function handleCustomerRemove() {
+async function handleCustomerRemove() {
   const customerId = els.assignmentCustomerSelect.value;
   if (!customerId) {
     return;
   }
 
-  state.customers = state.customers.filter((customer) => customer.id !== customerId);
-  state.orders = state.orders.filter((order) => order.customerId !== customerId);
-  saveState();
+  await apiRequest(`./api/customers/${customerId}`, { method: "DELETE" });
+  await refreshState();
   renderAll();
 }
 
-function handleOrderSubmit(event) {
+async function handleOrderSubmit(event) {
   event.preventDefault();
   const currentUser = getCurrentUser();
   if (currentUser.role !== "sales") {
@@ -693,77 +764,86 @@ function handleOrderSubmit(event) {
     paymentTerm: els.paymentTermInput.value.trim(),
     shippingOwner: els.shippingOwnerSelect.value,
     note: els.orderNoteInput.value.trim(),
-    items,
-    submittedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    items
   };
 
   if (els.orderIdInput.value) {
-    const existing = byId(state.orders, els.orderIdInput.value);
-    if (!existing || existing.repId !== currentUser.id) {
-      return;
-    }
-
-    Object.assign(existing, payload, {
-      reviewStatus: existing.reviewStatus === "reviewed" ? "pending" : existing.reviewStatus,
-      submissionLabel: existing.reviewStatus === "reviewed" ? "Revize" : (existing.submissionLabel || "Yeni Siparis"),
-      reviewedAt: existing.reviewStatus === "reviewed" ? "" : existing.reviewedAt
+    await apiRequest(`./api/orders/${els.orderIdInput.value}`, {
+      method: "PUT",
+      body: JSON.stringify(payload)
     });
   } else {
-    state.orders.push({
-      id: createId("order"),
-      createdAt: new Date().toISOString(),
-      reviewStatus: "pending",
-      submissionLabel: "Yeni Siparis",
-      reviewedAt: "",
-      ...payload
+    await apiRequest("./api/orders", {
+      method: "POST",
+      body: JSON.stringify(payload)
     });
   }
 
-  saveState();
+  await refreshState();
   clearOrderForm();
   renderAll();
 }
 
 function bindEvents() {
-  els.resetDataButton.addEventListener("click", () => {
-    state = structuredClone(seedState);
-    saveState();
-    saveSessionUserId(currentUserId || "admin-1");
-    clearOrderForm();
-    renderAll();
-  });
+  if (hasElement(els.resetDataButton)) {
+    els.resetDataButton.addEventListener("click", async () => {
+      await apiRequest("./api/reset", { method: "POST" });
+      await refreshState();
+      clearOrderForm();
+      renderAll();
+    });
+  }
 
-  els.logoutButton.addEventListener("click", () => {
-    localStorage.removeItem(AUTH_KEY);
-    localStorage.removeItem(SESSION_KEY);
-    window.location.href = "./index.html";
-  });
+  if (hasElement(els.logoutButton)) {
+    els.logoutButton.addEventListener("click", () => {
+      localStorage.removeItem(AUTH_KEY);
+      localStorage.removeItem(SESSION_KEY);
+      window.location.href = "./index.html";
+    });
+  }
 
-  els.customerRepSelect.addEventListener("change", syncDealerOptions);
-  els.customerForm.addEventListener("submit", handleCustomerCreate);
-  els.assignmentForm.addEventListener("submit", handleAssignmentUpdate);
-  els.removeCustomerButton.addEventListener("click", handleCustomerRemove);
-  els.orderCustomerSelect.addEventListener("change", () => {
-    renderCustomerSnapshot();
-    toggleOrderLinesAvailability();
-  });
-  els.addLineButton.addEventListener("click", () => addLineItem());
-  els.clearOrderButton.addEventListener("click", clearOrderForm);
-  els.orderForm.addEventListener("submit", handleOrderSubmit);
+  if (hasElement(els.customerRepSelect)) {
+    els.customerRepSelect.addEventListener("change", syncDealerOptions);
+  }
+  if (hasElement(els.customerForm)) {
+    els.customerForm.addEventListener("submit", handleCustomerCreate);
+  }
+  if (hasElement(els.assignmentForm)) {
+    els.assignmentForm.addEventListener("submit", handleAssignmentUpdate);
+  }
+  if (hasElement(els.removeCustomerButton)) {
+    els.removeCustomerButton.addEventListener("click", handleCustomerRemove);
+  }
+  if (hasElement(els.orderCustomerSelect)) {
+    els.orderCustomerSelect.addEventListener("change", () => {
+      renderCustomerSnapshot();
+      toggleOrderLinesAvailability();
+    });
+  }
+  if (hasElement(els.addLineButton)) {
+    els.addLineButton.addEventListener("click", () => addLineItem());
+  }
+  if (hasElement(els.clearOrderButton)) {
+    els.clearOrderButton.addEventListener("click", clearOrderForm);
+  }
+  if (hasElement(els.orderForm)) {
+    els.orderForm.addEventListener("submit", handleOrderSubmit);
+  }
 }
 
 function renderSessionMeta() {
   const currentUser = getCurrentUser();
-  if (!currentUser) {
+  if (!currentUser || !hasElement(els.sessionUserName)) {
     return;
   }
 
   const companyName = getCompanyName(currentUser.companyId);
   els.sessionUserName.textContent = `${currentUser.name} (${currentUser.role === "admin" ? "Admin" : "Satici"})`;
-  els.sessionMeta.textContent = currentUser.role === "admin"
-    ? `${companyName} - tum bolgeler ve tum saticilar`
-    : `${companyName} - ${currentUser.region} bolgesi`;
+  if (hasElement(els.sessionMeta)) {
+    els.sessionMeta.textContent = currentUser.role === "admin"
+      ? `${companyName} - tum bolgeler ve tum saticilar`
+      : `${companyName} - ${currentUser.region} bolgesi`;
+  }
 }
 
 function renderAll() {
@@ -782,7 +862,28 @@ if (!currentUserId) {
   window.location.href = "./index.html";
 }
 
-hydrateElements();
-bindEvents();
-clearOrderForm();
-renderAll();
+async function initializeApp() {
+  hydrateElements();
+  bindEvents();
+
+  if (!currentUserId) {
+    window.location.href = "./index.html";
+    return;
+  }
+
+  await refreshState();
+
+  if (!getCurrentUser()) {
+    localStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(SESSION_KEY);
+    window.location.href = "./index.html";
+    return;
+  }
+
+  clearOrderForm();
+  renderAll();
+}
+
+initializeApp().catch((error) => {
+  console.error(error);
+});

@@ -10,49 +10,18 @@
   <div class="portal-shell">
     <header class="brand-bar">
       <div class="brand-lockup">
-        <span class="brand-mark">Y</span>
+        <img class="brand-logo" src="./yemcibey-logo-horizontal.png" alt="Yemcibey logo">
         <div>
           <strong>Satis Siparis Portali</strong>
           <p>Yem ve bayi operasyonlari icin kurumsal saha ekrani</p>
         </div>
       </div>
-      <nav class="brand-nav">
-        <span>Kurumsal</span>
-        <span>Urunler</span>
-        <span>Iletisim</span>
-      </nav>
     </header>
 
-    <section class="portal-hero">
-      <div class="portal-copy">
-        <p class="eyebrow">Siparis portal girisi</p>
-        <h1>Kullanici adi ve sifre ile giris yapin</h1>
-        <p>
-          Giris yapan kullanicinin rolune gore admin yonetim ekrani ya da satici siparis
-          ekrani otomatik acilir.
-        </p>
-        <div class="portal-points">
-          <span class="tag">Admin: admin / admin</span>
-          <span class="tag">Rol bazli ekran</span>
-          <span class="tag">Mobil uyumlu</span>
-        </div>
-        <div class="hero-feature-grid">
-          <article class="hero-feature-card">
-            <span class="eyebrow">Saha akisi</span>
-            <strong>Musteri, bayi ve siparis yonetimi</strong>
-            <p>Satisa cikan ekipler telefondan hizli siparis girebilir.</p>
-          </article>
-          <article class="hero-feature-card">
-            <span class="eyebrow">Operasyon</span>
-            <strong>Envanterden sec, tarih ver, takip et</strong>
-            <p>Urun secimi, teslim tarihi ve siparis gecmisi tek yerde tutulur.</p>
-          </article>
-        </div>
-      </div>
-
+    <section class="portal-login-wrap">
       <div class="login-panel">
         <p class="eyebrow">Giris yap</p>
-        <h2>Portal kimlik dogrulama</h2>
+        <h2>Hesabina giris yap</h2>
         <form id="loginForm" class="stack-form">
           <label>
             Kullanici adi
@@ -65,12 +34,8 @@
           <button type="submit">Portala gir</button>
         </form>
         <p id="loginMessage" class="muted login-message">
-          Admin girisi hazir: <strong>admin</strong> / <strong>admin</strong>
+          Giris icin size tanimlanan kullanici adi ve sifreyi kullanin.
         </p>
-        <div class="demo-accounts">
-          <p class="eyebrow">Demo satici hesaplari</p>
-          <p class="muted">ayse / 1234, mehmet / 1234, elif / 1234</p>
-        </div>
       </div>
     </section>
   </div>
@@ -78,30 +43,30 @@
   <script>
     const SESSION_KEY = "sales-order-system-user";
     const AUTH_KEY = "sales-order-system-auth";
-    const credentials = [
-      { username: "admin", password: "admin", userId: "admin-1" },
-      { username: "ayse", password: "1234", userId: "rep-1" },
-      { username: "mehmet", password: "1234", userId: "rep-2" },
-      { username: "elif", password: "1234", userId: "rep-3" }
-    ];
-
     const form = document.getElementById("loginForm");
     const message = document.getElementById("loginMessage");
 
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const formData = new FormData(form);
       const username = String(formData.get("username") || "").trim().toLowerCase();
       const password = String(formData.get("password") || "").trim();
-      const account = credentials.find((item) => item.username === username && item.password === password);
 
-      if (!account) {
+      const response = await fetch("./api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (!response.ok) {
         message.textContent = "Kullanici adi veya sifre hatali.";
         message.classList.add("error-text");
         return;
       }
 
-      localStorage.setItem(SESSION_KEY, account.userId);
+      const data = await response.json();
+
+      localStorage.setItem(SESSION_KEY, data.user.id);
       localStorage.setItem(AUTH_KEY, "true");
       window.location.href = "./order-create.html";
     });

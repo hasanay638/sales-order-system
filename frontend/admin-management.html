@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yonetim Ekrani</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="brand-bar">
+      <img class="brand-logo" src="./yemcibey-logo-horizontal.png" alt="Yemcibey logo">
+      <div class="brand-session">
+        <span class="eyebrow brand-eyebrow">Giris yapan kisi</span>
+        <strong id="sessionUserName">Kullanici</strong>
+      </div>
+      <div class="brand-actions">
+        <a class="admin-link-button small-link" href="./order-create.html">Ana ekrana don</a>
+        <button id="resetDataButton" class="ghost-button" type="button">Verileri yenile</button>
+        <button id="logoutButton" class="ghost-button" type="button">Cikis yap</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="panel">
+        <div class="panel-title-row">
+          <div>
+            <p class="eyebrow">Yonetim ekrani</p>
+            <h2>Musteri ve satici atamalari</h2>
+          </div>
+        </div>
+        <p id="sessionMeta" class="muted"></p>
+
+        <div class="admin-grid">
+          <article class="subpanel">
+            <h3>Yeni musteri ekle</h3>
+            <form id="customerForm" class="stack-form">
+              <label>
+                Musteri adi
+                <input id="customerNameInput" name="customerName" type="text" placeholder="Musteri adi" required>
+              </label>
+              <label>
+                Firma
+                <select id="customerCompanySelect" name="companyId" required></select>
+              </label>
+              <label>
+                Bayi
+                <select id="customerDealerSelect" name="dealerId" required></select>
+              </label>
+              <label>
+                Sorumlu satici
+                <select id="customerRepSelect" name="repId" required></select>
+              </label>
+              <button type="submit">Musteriyi kaydet</button>
+            </form>
+          </article>
+
+          <article class="subpanel">
+            <h3>Atama guncelle veya kaldir</h3>
+            <form id="assignmentForm" class="stack-form">
+              <label>
+                Musteri sec
+                <select id="assignmentCustomerSelect" name="customerId" required></select>
+              </label>
+              <label>
+                Yeni satici
+                <select id="assignmentRepSelect" name="repId" required></select>
+              </label>
+              <div class="button-row">
+                <button type="submit">Atamayi guncelle</button>
+                <button id="removeCustomerButton" class="danger-button" type="button">Musteriyi kaldir</button>
+              </div>
+            </form>
+          </article>
+        </div>
+
+        <article class="subpanel">
+          <h3>Musteri listesi</h3>
+          <div id="customerTable" class="table-wrap"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="./bootstrap.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

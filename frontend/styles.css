@@ -97,6 +97,36 @@ textarea {
   box-shadow: var(--shadow);
 }
 
+.brand-logo {
+  display: block;
+  width: auto;
+  height: 58px;
+  flex: 0 0 auto;
+  background: #fff;
+  border-radius: 14px;
+  padding: 0.35rem 0.6rem;
+}
+
+.brand-session {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.brand-session strong {
+  font-size: 1.2rem;
+}
+
+.brand-eyebrow {
+  margin: 0;
+  color: rgba(255, 249, 239, 0.8);
+}
+
+.brand-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .brand-lockup {
   display: flex;
   align-items: center;
@@ -111,18 +141,6 @@ textarea {
 .brand-lockup p {
   color: rgba(255, 249, 239, 0.76);
   font-size: 0.92rem;
-}
-
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, var(--accent-soft), #f0cd89);
-  color: var(--forest);
-  font-size: 1.4rem;
-  font-weight: 800;
 }
 
 .brand-nav {
@@ -151,8 +169,22 @@ textarea {
   grid-template-columns: 1.3fr minmax(280px, 380px);
 }
 
+.portal-login-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.portal-login-wrap .login-panel {
+  width: min(460px, 100%);
+}
+
 .hero {
   grid-template-columns: 1.8fr minmax(260px, 340px);
+}
+
+.single-hero {
+  grid-template-columns: 1fr;
 }
 
 .portal-copy,
@@ -316,12 +348,6 @@ textarea {
   margin-top: 1rem;
 }
 
-.demo-accounts {
-  margin-top: 1.2rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-}
-
 .error-text {
   color: var(--danger);
 }
@@ -370,6 +396,12 @@ textarea {
   margin-bottom: 1rem;
 }
 
+.admin-shortcuts {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
 .sales-layout {
   grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
 }
@@ -392,6 +424,27 @@ textarea {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.9rem;
+}
+
+.admin-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 220px;
+  margin-top: 0.8rem;
+  padding: 0.9rem 1.2rem;
+  border-radius: 16px;
+  text-decoration: none;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--forest) 100%);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 12px 24px rgba(74, 88, 29, 0.18);
+}
+
+.small-link {
+  min-width: auto;
+  margin-top: 0;
 }
 
 .tag {
@@ -500,6 +553,41 @@ th, td {
   margin: 0.35rem 0;
 }
 
+.admin-order-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.3rem 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.admin-order-section {
+  margin-top: 0.9rem;
+  padding: 0.9rem;
+  border-radius: 18px;
+  background: rgba(115, 131, 45, 0.06);
+  border: 1px solid rgba(115, 131, 45, 0.12);
+}
+
+.admin-order-section h4 {
+  margin: 0 0 0.6rem;
+}
+
+.compact-table th,
+.compact-table td {
+  padding: 0.65rem 0.55rem;
+}
+
+.revision-box {
+  background: rgba(212, 138, 52, 0.08);
+  border-color: rgba(212, 138, 52, 0.2);
+}
+
+.revision-list {
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--text);
+}
+
 .hidden {
   display: none;
 }
@@ -521,6 +609,7 @@ th, td {
   }
 
   .brand-bar,
+  .brand-actions,
   .panel-title-row,
   .order-lines-header,
   .button-row,
@@ -531,6 +620,10 @@ th, td {
   }
 
   .line-item {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-order-grid {
     grid-template-columns: 1fr;
   }
 
