@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="page-shell">
+  <div class="page-shell admin-page-shell">
     <header class="brand-bar">
       <div class="brand-session">
         <span class="eyebrow brand-eyebrow">Giris yapan kisi</span>
@@ -20,7 +20,7 @@
     </header>
 
     <main class="dashboard">
-      <section class="panel metrics-panel">
+      <section id="generalMetricsPanel" class="panel metrics-panel">
         <div class="panel-title-row">
           <div>
             <p class="eyebrow">Genel bakis</p>
@@ -30,38 +30,57 @@
         <div id="metricsGrid" class="metrics-grid"></div>
       </section>
 
-      <section id="adminPanel" class="panel hidden">
-        <div class="panel-title-row">
-          <div>
-            <h2>Yonetim</h2>
-          </div>
-        </div>
+      <section id="adminPanel" class="hidden">
+        <div class="admin-shell">
+          <aside class="panel admin-sidebar">
+            <p class="eyebrow">Yonetim</p>
+            <nav class="admin-sidebar-nav">
+              <a class="admin-link-button" href="./order-create.html">Siparisler</a>
+              <a class="admin-link-button ghost-nav-link" href="./customers.html">Musteriler</a>
+              <a class="admin-link-button ghost-nav-link" href="./products.html">Urunler</a>
+              <a class="admin-link-button ghost-nav-link" href="./admin-management.html">Satiscilar</a>
+              <a class="admin-link-button ghost-nav-link" href="./deleted-records.html">Silinenler</a>
+            </nav>
+          </aside>
 
-        <div class="admin-shortcuts">
-          <a class="admin-link-button" href="./customers.html">Musteriler</a>
-          <a class="admin-link-button" href="./products.html">Urunler</a>
-          <a class="admin-link-button" href="./admin-management.html">Satiscilar</a>
-          <a class="admin-link-button" href="./deleted-records.html">Silinenler</a>
-        </div>
-
-        <section class="admin-orders-grid">
-          <article class="subpanel">
+          <section class="panel admin-content-panel">
             <div class="panel-title-row">
-              <h3>Yeni siparisler</h3>
-              <span class="tag">Onay bekleyenler</span>
+              <div>
+                <p class="eyebrow">Siparis yonetimi</p>
+                <h2>Admin siparis ekrani</h2>
+              </div>
             </div>
-            <div id="adminPendingOrdersList" class="orders-list"></div>
-          </article>
 
-          <article class="subpanel">
-            <div class="panel-title-row">
-              <h3>Kontrolu yapilan siparisler</h3>
-              <span class="tag">Onaylananlar</span>
-            </div>
-            <input id="adminReviewedSearchInput" type="search" placeholder="Musteri ara">
-            <div id="adminReviewedOrdersList" class="orders-list"></div>
-          </article>
-        </section>
+            <section class="subpanel metrics-panel-inline">
+              <div class="panel-title-row">
+                <div>
+                  <p class="eyebrow">Genel bakis</p>
+                  <h3>Canli ozet</h3>
+                </div>
+              </div>
+              <div id="adminMetricsGrid" class="metrics-grid"></div>
+            </section>
+
+            <section class="admin-orders-grid">
+              <article class="subpanel">
+                <div class="panel-title-row">
+                  <h3>Yeni siparisler</h3>
+                  <span class="tag">Onay bekleyenler</span>
+                </div>
+                <div id="adminPendingOrdersList" class="orders-list"></div>
+              </article>
+
+              <article class="subpanel">
+                <div class="panel-title-row">
+                  <h3>Kontrolu yapilan siparisler</h3>
+                  <span class="tag">Onaylananlar</span>
+                </div>
+                <input id="adminReviewedSearchInput" type="search" placeholder="Musteri ara">
+                <div id="adminReviewedOrdersList" class="orders-list"></div>
+              </article>
+            </section>
+          </section>
+        </div>
       </section>
 
       <section id="salesPanel" class="panel hidden">

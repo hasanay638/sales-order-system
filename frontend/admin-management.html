@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="page-shell">
+  <div class="page-shell admin-page-shell">
     <header class="brand-bar">
       <div class="brand-session">
         <span class="eyebrow brand-eyebrow">Giris yapan kisi</span>
@@ -15,14 +15,24 @@
       </div>
       <div class="brand-actions">
         <a class="admin-link-button small-link" href="./order-create.html">Ana ekrana don</a>
-        <a class="admin-link-button small-link" href="./deleted-records.html">Silinenler</a>
         <button id="resetDataButton" class="ghost-button" type="button">Verileri yenile</button>
         <button id="logoutButton" class="ghost-button" type="button">Cikis yap</button>
       </div>
     </header>
 
-    <main class="dashboard">
-      <section class="panel">
+    <main class="admin-shell">
+      <aside class="panel admin-sidebar">
+        <p class="eyebrow">Yonetim</p>
+        <nav class="admin-sidebar-nav">
+          <a class="admin-link-button ghost-nav-link" href="./order-create.html">Siparisler</a>
+          <a class="admin-link-button ghost-nav-link" href="./customers.html">Musteriler</a>
+          <a class="admin-link-button ghost-nav-link" href="./products.html">Urunler</a>
+          <a class="admin-link-button" href="./admin-management.html">Satiscilar</a>
+          <a class="admin-link-button ghost-nav-link" href="./deleted-records.html">Silinenler</a>
+        </nav>
+      </aside>
+
+      <section class="panel admin-content-panel">
         <div class="panel-title-row">
           <div>
             <p class="eyebrow">Yonetim ekrani</p>
@@ -81,15 +91,6 @@
             </form>
           </article>
         </div>
-
-        <article class="subpanel">
-          <div class="panel-title-row">
-            <h3>Musteri listesi</h3>
-            <button id="importCustomerCodesButton" class="ghost-button" type="button">Kodlari Excel'den cek</button>
-          </div>
-          <p class="muted">Kaynak dosya: musteri kodu.xls</p>
-          <div id="customerTable" class="table-wrap"></div>
-        </article>
 
         <div class="admin-grid">
           <article class="subpanel">
@@ -176,43 +177,6 @@
           <div id="salesRepTable" class="table-wrap"></div>
         </article>
 
-        <div class="admin-grid">
-          <article class="subpanel">
-            <h3>Yeni urun ekle</h3>
-            <form id="productForm" class="stack-form">
-              <label>
-                Stok kodu
-                <input id="productSkuInput" name="sku" type="text" placeholder="STK-001" required>
-              </label>
-              <label>
-                Urun adi
-                <input id="productNameInput" name="name" type="text" placeholder="Urun adi" required>
-              </label>
-              <label>
-                Birim
-                <input id="productUnitInput" name="unit" type="text" placeholder="adet">
-              </label>
-              <button type="submit">Urunu kaydet</button>
-            </form>
-          </article>
-
-          <article class="subpanel">
-            <h3>Urun kaldir</h3>
-            <form id="productDeleteForm" class="stack-form">
-              <label>
-                Urun sec
-                <select id="productDeleteSelect" name="productId" required></select>
-              </label>
-              <p class="muted">Aktif sipariste kullanilan urunler silinemez. Digerleri Silinenler sayfasina tasinir.</p>
-              <button id="removeProductButton" class="danger-button" type="button">Urunu kaldir</button>
-            </form>
-          </article>
-        </div>
-
-        <article class="subpanel">
-          <h3>Urun listesi</h3>
-          <div id="productTable" class="table-wrap"></div>
-        </article>
       </section>
     </main>
   </div>

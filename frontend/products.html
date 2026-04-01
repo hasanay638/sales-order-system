@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="page-shell">
+  <div class="page-shell admin-page-shell">
     <header class="brand-bar">
       <div class="brand-session">
         <span class="eyebrow brand-eyebrow">Giris yapan kisi</span>
@@ -15,13 +15,23 @@
       </div>
       <div class="brand-actions">
         <a class="admin-link-button small-link" href="./order-create.html">Ana ekrana don</a>
-        <a class="admin-link-button small-link" href="./deleted-records.html">Silinenler</a>
         <button id="logoutButton" class="ghost-button" type="button">Cikis yap</button>
       </div>
     </header>
 
-    <main class="dashboard">
-      <section class="panel">
+    <main class="admin-shell">
+      <aside class="panel admin-sidebar">
+        <p class="eyebrow">Yonetim</p>
+        <nav class="admin-sidebar-nav">
+          <a class="admin-link-button ghost-nav-link" href="./order-create.html">Siparisler</a>
+          <a class="admin-link-button ghost-nav-link" href="./customers.html">Musteriler</a>
+          <a class="admin-link-button" href="./products.html">Urunler</a>
+          <a class="admin-link-button ghost-nav-link" href="./admin-management.html">Satiscilar</a>
+          <a class="admin-link-button ghost-nav-link" href="./deleted-records.html">Silinenler</a>
+        </nav>
+      </aside>
+
+      <section class="panel admin-content-panel">
         <div class="panel-title-row">
           <h2>Urunler</h2>
         </div>

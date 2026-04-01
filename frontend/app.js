@@ -23,6 +23,7 @@ let salesRepEditCacheId = "";
 let adminReviewedSearch = "";
 let salesOrdersSearch = "";
 let deletedRecordsTab = "orders";
+let lastAssignmentCustomerId = "";
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -167,12 +168,16 @@ function getOrderStatusLabel(order) {
 }
 
 function getOrderTagClass(order) {
-  if (order.reviewStatus === "rejected") {
+  if (order.reviewStatus === "rejected" || order.submissionLabel === "Red") {
     return "tag-danger";
   }
 
   if (order.submissionLabel === "Revize") {
     return "tag-warning";
+  }
+
+  if (order.reviewStatus === "reviewed" || order.submissionLabel === "Kontrol Edildi") {
+    return "tag-success";
   }
 
   return "tag-info";
@@ -199,7 +204,10 @@ function getOrdersTotal(order) {
 }
 
 function getOrderTotalKg(order) {
-  return order.items.reduce((sum, item) => sum + (Number(item.quantity) * 50), 0);
+  return order.items.reduce((sum, item) => {
+    const bagKg = Number(item?.erpPayload?.BAG_KG || 50);
+    return sum + (Number(item.quantity) * bagKg);
+  }, 0);
 }
 
 function formatMoney(value) {
@@ -363,6 +371,92 @@ function renderOrderItemsDetails(order) {
   `;
 }
 
+function renderErpOrderSummary(order) {
+  const erp = order.erpPayload || {};
+  const fields = [
+    ["ERP siparis no", erp.NUMBER || order.erpOrderNumber || order.orderNumber || "-"],
+    ["ERP musteri kodu", erp.ARP_CODE || order.erpCustomerCode || "-"],
+    ["Siparis tarihi", erp.DATE || order.erpOrderDate || order.deliveryDate || "-"],
+    ["Belge takip no", erp.DOC_TRACK_NR || order.erpDocTrackNr || "-"],
+    ["Satisci kodu", erp.SALESMAN_CODE || "-"],
+    ["Depo", erp.SOURCE_WH || "-"],
+    ["Maliyet grubu", erp.SOURCE_COST_GRP || "-"],
+    ["Bolum", erp.DIVISION || "-"],
+    ["Fabrika", erp.FACTORY || "-"],
+    ["Odeme kodu", erp.PAYMENT_CODE || order.paymentTerm || "-"],
+    ["Toplam iskontolu", erp.TOTAL_DISCOUNTED != null ? formatMoney(erp.TOTAL_DISCOUNTED) : "-"],
+    ["Toplam KDV", erp.TOTAL_VAT != null ? formatMoney(erp.TOTAL_VAT) : "-"],
+    ["Toplam brut", erp.TOTAL_GROSS != null ? formatMoney(erp.TOTAL_GROSS) : "-"],
+    ["Toplam net", erp.TOTAL_NET != null ? formatMoney(erp.TOTAL_NET) : "-"]
+  ];
+
+  const notes = [
+    erp.NOTES1,
+    erp.NOTES2,
+    erp.NOTES3,
+    erp.NOTES4
+  ].filter(Boolean);
+
+  const rows = fields.map(([label, value]) => `<p><strong>${label}:</strong> ${value || "-"}</p>`).join("");
+  const notesMarkup = notes.length
+    ? `<div class="admin-order-section"><h4>ERP notlari</h4><ul class="revision-list">${notes.map((note) => `<li>${note}</li>`).join("")}</ul></div>`
+    : "";
+
+  return `
+    <div class="admin-order-section">
+      <h4>ERP / XML cikti ozeti</h4>
+      <div class="admin-order-grid">${rows}</div>
+    </div>
+    ${notesMarkup}
+  `;
+}
+
+function renderErpLineDetails(order) {
+  if (!order.items?.length) {
+    return "";
+  }
+
+  const rows = order.items.map((item) => {
+    const product = getProduct(item.productId);
+    const erp = item.erpPayload || {};
+    return `
+      <tr>
+        <td>${erp.MASTER_CODE || product?.sku || "-"}</td>
+        <td>${product?.name || erp.PRODUCT_NAME || "Urun"}</td>
+        <td>${erp.UNIT_CODE || "-"}</td>
+        <td>${erp.QUANTITY ?? item.quantity}</td>
+        <td>${formatMoney(erp.PRICE ?? item.price)}</td>
+        <td>${formatMoney(erp.TOTAL ?? (Number(item.quantity) * Number(item.price)))}</td>
+        <td>${erp.DUE_DATE || order.deliveryDate || "-"}</td>
+        <td>${erp.SALESMAN_CODE || "-"}</td>
+      </tr>
+    `;
+  }).join("");
+
+  return `
+    <div class="admin-order-section">
+      <h4>ERP satir ciktilari</h4>
+      <div class="table-wrap">
+        <table class="compact-table">
+          <thead>
+            <tr>
+              <th>Stok kodu</th>
+              <th>Urun</th>
+              <th>Birim</th>
+              <th>Miktar</th>
+              <th>Fiyat</th>
+              <th>Toplam</th>
+              <th>Vade tarihi</th>
+              <th>Satisci kodu</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
 function renderRevisionSummary(order) {
   if (order.submissionLabel !== "Revize" || !order.revisionSummary?.length) {
     return "";
@@ -383,6 +477,8 @@ function hydrateElements() {
   els.resetDataButton = document.getElementById("resetDataButton");
   els.logoutButton = document.getElementById("logoutButton");
   els.metricsGrid = document.getElementById("metricsGrid");
+  els.generalMetricsPanel = document.getElementById("generalMetricsPanel");
+  els.adminMetricsGrid = document.getElementById("adminMetricsGrid");
   els.adminPanel = document.getElementById("adminPanel");
   els.salesPanel = document.getElementById("salesPanel");
   els.customerForm = document.getElementById("customerForm");
@@ -395,6 +491,10 @@ function hydrateElements() {
   els.assignmentRepSelect = document.getElementById("assignmentRepSelect");
   els.assignmentCustomerErpCodeInput = document.getElementById("assignmentCustomerErpCodeInput");
   els.assignmentCurrentRepInput = document.getElementById("assignmentCurrentRepInput");
+  els.bulkTransferForm = document.getElementById("bulkTransferForm");
+  els.bulkTransferSourceRepSelect = document.getElementById("bulkTransferSourceRepSelect");
+  els.bulkTransferTargetRepSelect = document.getElementById("bulkTransferTargetRepSelect");
+  els.bulkTransferSummary = document.getElementById("bulkTransferSummary");
   els.removeCustomerButton = document.getElementById("removeCustomerButton");
   els.importCustomerCodesButton = document.getElementById("importCustomerCodesButton");
   els.customerTable = document.getElementById("customerTable");
@@ -459,7 +559,7 @@ function populateSelect(select, items, formatter, placeholder) {
 }
 
 function renderMetrics() {
-  if (!hasElement(els.metricsGrid)) {
+  if (!hasElement(els.metricsGrid) && !hasElement(els.adminMetricsGrid)) {
     return;
   }
 
@@ -488,12 +588,31 @@ function renderMetrics() {
     ];
   }
 
-  els.metricsGrid.innerHTML = cards.map((card) => `
+  const markup = cards.map((card) => `
     <article class="metric-card">
       <span class="eyebrow">${card.label}</span>
       <strong>${card.value}</strong>
     </article>
   `).join("");
+
+  if (currentUser.role === "admin") {
+    if (hasElement(els.generalMetricsPanel)) {
+      els.generalMetricsPanel.classList.add("hidden");
+    }
+    if (hasElement(els.adminMetricsGrid)) {
+      els.adminMetricsGrid.innerHTML = markup;
+    }
+  } else {
+    if (hasElement(els.generalMetricsPanel)) {
+      els.generalMetricsPanel.classList.remove("hidden");
+    }
+    if (hasElement(els.metricsGrid)) {
+      els.metricsGrid.innerHTML = markup;
+    }
+    if (hasElement(els.adminMetricsGrid)) {
+      els.adminMetricsGrid.innerHTML = "";
+    }
+  }
 }
 
 function renderAdminPanel() {
@@ -530,6 +649,12 @@ function renderAdminPanel() {
   if (hasElement(els.assignmentRepSelect)) {
     populateSelect(els.assignmentRepSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.region}`, null);
   }
+  if (hasElement(els.bulkTransferSourceRepSelect)) {
+    populateSelect(els.bulkTransferSourceRepSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.region}`, null);
+  }
+  if (hasElement(els.bulkTransferTargetRepSelect)) {
+    populateSelect(els.bulkTransferTargetRepSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.region}`, null);
+  }
   if (hasElement(els.salesRepDeleteSelect)) {
     populateSelect(els.salesRepDeleteSelect, getRepUsers(), (rep) => `${rep.name} - ${rep.region}`, null);
   }
@@ -549,10 +674,18 @@ function renderAdminPanel() {
   if (hasElement(els.assignmentRepSelect) && !els.assignmentRepSelect.value && getRepUsers()[0]) {
     els.assignmentRepSelect.value = getRepUsers()[0].id;
   }
-  if (hasElement(els.assignmentCustomerSelect) && !els.assignmentCustomerSelect.value && state.customers[0]) {
-    els.assignmentCustomerSelect.value = state.customers[0].id;
+  if (hasElement(els.assignmentCustomerSelect)) {
+    const preferredCustomerId = lastAssignmentCustomerId && state.customers.some((customer) => customer.id === lastAssignmentCustomerId)
+      ? lastAssignmentCustomerId
+      : els.assignmentCustomerSelect.value;
+    if (preferredCustomerId && state.customers.some((customer) => customer.id === preferredCustomerId)) {
+      els.assignmentCustomerSelect.value = preferredCustomerId;
+    } else if (state.customers[0]) {
+      els.assignmentCustomerSelect.value = state.customers[0].id;
+    }
   }
   syncAssignmentCustomerMeta();
+  syncBulkTransferSummary();
   if (hasElement(els.salesRepEditSelect) && !els.salesRepEditSelect.value && getRepUsers()[0]) {
     els.salesRepEditSelect.value = getRepUsers()[0].id;
   }
@@ -804,10 +937,27 @@ function syncAssignmentCustomerMeta() {
   }
 
   const customer = byId(state.customers, els.assignmentCustomerSelect.value);
+  lastAssignmentCustomerId = customer?.id || "";
   els.assignmentCustomerErpCodeInput.value = customer?.erpCode || "";
   if (hasElement(els.assignmentCurrentRepInput)) {
     els.assignmentCurrentRepInput.value = customer ? getRepName(customer.repId) : "";
   }
+}
+
+function syncBulkTransferSummary() {
+  if (!hasElement(els.bulkTransferSummary) || !hasElement(els.bulkTransferSourceRepSelect) || !hasElement(els.bulkTransferTargetRepSelect)) {
+    return;
+  }
+
+  const sourceRep = byId(state.users, els.bulkTransferSourceRepSelect.value);
+  const targetRep = byId(state.users, els.bulkTransferTargetRepSelect.value);
+  if (!sourceRep || !targetRep) {
+    els.bulkTransferSummary.textContent = "Toplu devri baslatmak icin kaynak ve hedef saticiyi sec.";
+    return;
+  }
+
+  const transferableCount = state.customers.filter((customer) => customer.repId === sourceRep.id).length;
+  els.bulkTransferSummary.textContent = `${sourceRep.name} uzerindeki ${transferableCount} musteri, ${targetRep.name} uzerine devredilecek.`;
 }
 
 async function loadSalesRepIntoEditForm(repId) {
@@ -953,7 +1103,7 @@ function renderSalesOrderCard(order, allowEdit = false) {
     <article class="order-card">
       <div class="sales-order-summary">
         <div class="sales-order-summary-main">
-          <p><strong>Siparis No:</strong> #${order.orderNumber || "-"}</p>
+          <p><strong>Siparis No:</strong> #${order.orderNumber || "-"} <span class="tag ${getOrderTagClass(order)} inline-status-tag">${getOrderStatusLabel(order)}</span></p>
           <strong>${customer?.name || "Musteri silinmis"}</strong>
           <p>${formatDate(order.deliveryDate)}</p>
         </div>
@@ -961,12 +1111,12 @@ function renderSalesOrderCard(order, allowEdit = false) {
           <button class="ghost-button" type="button" data-sales-order-toggle="${order.id}">Ayrintiyi ac</button>
           ${allowEdit ? `<button type="button" data-order-edit="${order.id}">Duzenle</button>` : ""}
           <button class="ghost-button" type="button" data-order-copy="${order.id}">Kopyala</button>
+          ${order.reviewStatus === "reviewed" ? `<button class="ghost-button" type="button" data-order-export="${order.id}">Excele aktar</button>` : ""}
           ${order.reviewStatus === "rejected" ? `<button class="danger-button" type="button" data-order-delete="${order.id}">Sil</button>` : ""}
         </div>
       </div>
       <div class="sales-order-details hidden" data-sales-order-details="${order.id}">
         <div class="order-card-total">
-          <span>${order.items.length} kalem</span>
           <strong>${formatMoney(total)}</strong>
         </div>
         <p><strong>Durum:</strong> ${getOrderStatusLabel(order)}</p>
@@ -974,6 +1124,7 @@ function renderSalesOrderCard(order, allowEdit = false) {
         <p><strong>Nakliye:</strong> ${order.shippingOwner || "-"}</p>
         <ul>${itemsMarkup}</ul>
         <p><strong>Not:</strong> ${order.note || "-"}</p>
+        ${renderErpLineDetails(order)}
       </div>
     </article>
   `;
@@ -992,6 +1143,9 @@ function bindSalesOrderActions(container) {
   });
   container.querySelectorAll("[data-order-copy]").forEach((button) => {
     button.addEventListener("click", () => copyOrderIntoForm(button.dataset.orderCopy));
+  });
+  container.querySelectorAll("[data-order-export]").forEach((button) => {
+    button.addEventListener("click", () => exportOrderExcel(button.dataset.orderExport));
   });
   container.querySelectorAll("[data-order-delete]").forEach((button) => {
     button.addEventListener("click", () => deleteOrder(button.dataset.orderDelete));
@@ -1015,7 +1169,7 @@ function renderOrdersList() {
     : `<div class="info-card muted-card">Onay bekleyen siparis yok.</div>`;
 
   els.salesReviewedOrdersList.innerHTML = reviewedOrders.length
-    ? reviewedOrders.map((order) => renderSalesOrderCard(order, false)).join("")
+    ? reviewedOrders.map((order) => renderSalesOrderCard(order, true)).join("")
     : `<div class="info-card muted-card">Henuz onaylanan siparis yok.</div>`;
 
   bindSalesOrderActions(els.salesPendingOrdersList);
@@ -1068,6 +1222,9 @@ function renderAdminOrdersList() {
   els.adminReviewedOrdersList.querySelectorAll("[data-order-toggle]").forEach((button) => {
     button.addEventListener("click", () => toggleAdminOrderDetails(button.dataset.orderToggle));
   });
+  els.adminReviewedOrdersList.querySelectorAll("[data-order-export]").forEach((button) => {
+    button.addEventListener("click", () => exportOrderExcel(button.dataset.orderExport));
+  });
   els.adminReviewedOrdersList.querySelectorAll("[data-order-delete]").forEach((button) => {
     button.addEventListener("click", () => deleteOrder(button.dataset.orderDelete));
   });
@@ -1085,25 +1242,32 @@ function toggleAdminOrderDetails(orderId) {
   button.textContent = expanded ? "Ayrintiyi ac" : "Kucult";
 }
 
+function exportOrderExcel(orderId) {
+  window.location.href = `./api/orders/${encodeURIComponent(orderId)}/export`;
+}
+
 function renderAdminOrderCard(order, canApprove) {
   const customer = byId(state.customers, order.customerId);
   const rep = byId(state.users, order.repId);
   const dealer = customer ? getDealerForCustomer(customer) : null;
   const statusClass = getOrderTagClass(order);
   const totalKg = getOrderTotalKg(order);
+  const revisionBadge = order.submissionLabel === "Revize" ? `<span class="tag tag-danger">Revize</span>` : "";
 
   return `
     <article class="order-card">
       <div class="admin-order-summary">
         <div class="admin-order-summary-main">
-          <strong>${rep?.name || "-"}</strong>
+          <strong>${rep?.name || "-"} <span class="tag ${statusClass} inline-status-tag">${getOrderStatusLabel(order)}</span></strong>
           <span>${customer?.name || "Musteri silinmis"}</span>
           <span>#${order.orderNumber || "-"} - ${formatKg(totalKg)} kg</span>
+          ${revisionBadge}
         </div>
         <div class="button-row admin-order-actions">
           <button class="ghost-button" type="button" data-order-toggle="${order.id}">Ayrintiyi ac</button>
           ${canApprove ? `<button type="button" data-order-approve="${order.id}">Onayla</button>` : `<span class="tag">Islem tamamlandi</span>`}
           ${canApprove ? `<button class="danger-button" type="button" data-order-reject="${order.id}">Reddet</button>` : ""}
+          ${!canApprove ? `<button class="ghost-button" type="button" data-order-export="${order.id}">Excele aktar</button>` : ""}
           <button class="danger-button" type="button" data-order-delete="${order.id}">Sil</button>
         </div>
       </div>
@@ -1126,12 +1290,13 @@ function renderAdminOrderCard(order, canApprove) {
           <p><strong>Girilme:</strong> ${formatDateTime(order.submittedAt)}</p>
           <p><strong>Kontrol:</strong> ${order.reviewStatus === "reviewed" ? formatDateTime(order.reviewedAt) : "Bekliyor"}</p>
         </div>
+        ${renderRevisionSummary(order)}
         <div class="admin-order-section">
           <h4>Siparis notu</h4>
           <p>${order.note || "-"}</p>
         </div>
         ${renderOrderItemsDetails(order)}
-        ${renderRevisionSummary(order)}
+        ${renderErpLineDetails(order)}
       </div>
     </article>
   `;
@@ -1236,7 +1401,26 @@ async function handleAssignmentUpdate(event) {
     body: JSON.stringify({ repId, erpCode })
   });
 
+  lastAssignmentCustomerId = customer.id;
   await refreshState();
+  renderAll();
+}
+
+async function handleBulkTransfer(event) {
+  event.preventDefault();
+  const fromRepId = els.bulkTransferSourceRepSelect.value;
+  const toRepId = els.bulkTransferTargetRepSelect.value;
+  if (!fromRepId || !toRepId || fromRepId === toRepId) {
+    return;
+  }
+
+  await apiRequest("./api/customers/bulk-transfer", {
+    method: "POST",
+    body: JSON.stringify({ fromRepId, toRepId })
+  });
+
+  await refreshState();
+  syncBulkTransferSummary();
   renderAll();
 }
 
@@ -1427,6 +1611,15 @@ function bindEvents() {
   }
   if (hasElement(els.assignmentCustomerSelect)) {
     els.assignmentCustomerSelect.addEventListener("change", syncAssignmentCustomerMeta);
+  }
+  if (hasElement(els.bulkTransferSourceRepSelect)) {
+    els.bulkTransferSourceRepSelect.addEventListener("change", syncBulkTransferSummary);
+  }
+  if (hasElement(els.bulkTransferTargetRepSelect)) {
+    els.bulkTransferTargetRepSelect.addEventListener("change", syncBulkTransferSummary);
+  }
+  if (hasElement(els.bulkTransferForm)) {
+    els.bulkTransferForm.addEventListener("submit", handleBulkTransfer);
   }
   if (hasElement(els.removeCustomerButton)) {
     els.removeCustomerButton.addEventListener("click", handleCustomerRemove);

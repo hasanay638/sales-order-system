@@ -2362,5 +2362,6 @@ window.BOOTSTRAP_STATE = {
       "unit": "adet"
     }
   ],
-  "orders": []
+  "orders": [],
+  "deletedRecords": []
 };

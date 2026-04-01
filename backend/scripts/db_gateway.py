@@ -5,6 +5,7 @@ import sqlite3
 import sys
 import unicodedata
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 try:
@@ -122,6 +123,178 @@ def get_next_order_number(conn):
     return next_value
 
 
+def safe_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def format_order_date(value):
+    if not value:
+        return ''
+    raw = str(value).strip()
+    if not raw:
+        return ''
+    for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S.%f"):
+        try:
+            return datetime.strptime(raw, fmt).strftime("%d.%m.%Y")
+        except ValueError:
+            continue
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00")).strftime("%d.%m.%Y")
+    except ValueError:
+        return raw
+
+
+def get_shipping_label(value):
+    normalized = unicodedata.normalize("NFKD", str(value or "")).encode("ascii", "ignore").decode("ascii").lower().strip()
+    if normalized in ("musteri", "musteriye ait"):
+        return "Müşteriye ait"
+    if normalized in ("fabrika", "bize ait", "biz"):
+        return "Bize ait"
+    return str(value or "").strip()
+
+
+def get_bag_kg(product_name):
+    normalized = unicodedata.normalize("NFKD", str(product_name or "")).encode("ascii", "ignore").decode("ascii").lower()
+    if "protein kardesligi" in normalized or "tahil kardesligi" in normalized:
+        return 40
+    return 50
+
+
+def build_common_order_erp_defaults():
+    return {
+        'DBOP': 'INS',
+        'SOURCE_WH': '48',
+        'SOURCE_COST_GRP': '48',
+        'DIVISION': '11',
+        'ORDER_STATUS': '4',
+        'CREATED_BY': '154',
+        'MODIFIED_BY': '154',
+        'CURRSEL_TOTAL': '1',
+        'FACTORY': '6',
+        'PROJECT_CODE': '1',
+        'AFFECT_RISK': '1',
+        'DEDUCTIONPART1': '2',
+        'DEDUCTIONPART2': '3',
+        'EINVOICE_PROFILEID': '2',
+        'CANT_CRE_DEDUCT': '0',
+        'ORGLOGOID': '',
+        'DEFNFLDSLIST': [],
+        'LABEL_LIST': [],
+        'PAYDEFREF': '64',
+    }
+
+
+def build_common_item_erp_defaults():
+    return {
+        'TYPE': '0',
+        'UNIT_CONV1': 1,
+        'MULTI_ADD_TAX': '0',
+        'EDT_CURR': '1',
+        'ADD_TAX_EFFECT_KDV': '1',
+        'PROJECT_CODE': '1',
+        'AFFECT_RISK': '1',
+        'FACTORY': '6',
+        'SOURCE_WH': '48',
+        'SOURCE_COST_GRP': '48',
+        'DIVISION': '11',
+    }
+
+
+def coerce_json(value, fallback):
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, list):
+        return value
+    if not value:
+        return fallback
+    try:
+        return json.loads(value)
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return fallback
+
+
+def build_order_erp_payload(conn, order_payload, order_number=None, now_iso=''):
+    customer = conn.execute('SELECT name, erp_code FROM customers WHERE id = ?', (order_payload['customerId'],)).fetchone()
+    rep = conn.execute('SELECT name, salesman_code FROM users WHERE id = ?', (order_payload['repId'],)).fetchone()
+    company = conn.execute('SELECT name FROM companies WHERE id = ?', (order_payload['companyId'],)).fetchone()
+    dealer = conn.execute('''
+        SELECT d.name, d.city, d.district
+        FROM customers c
+        LEFT JOIN dealers d ON d.id = c.dealer_id
+        WHERE c.id = ?
+    ''', (order_payload['customerId'],)).fetchone()
+
+    items = order_payload.get('items', [])
+    total_gross = sum(safe_float(item.get('quantity')) * safe_float(item.get('price')) for item in items)
+    total_vat = 0.0
+    total_net = total_gross + total_vat
+    order_date = format_order_date(order_payload.get('deliveryDate') or (now_iso[:10] if now_iso else ''))
+    note = (order_payload.get('note') or '').strip()
+    shipping_owner = get_shipping_label(order_payload.get('shippingOwner'))
+    payment_term = (order_payload.get('paymentTerm') or '').strip()
+    location = (dealer['city'] if dealer and dealer['city'] else '') or ''
+
+    return {
+        **build_common_order_erp_defaults(),
+        'NUMBER': str(order_number or ''),
+        'DOC_TRACK_NR': '',
+        'DOC_TRACKING_NR': '',
+        'DATE': order_date,
+        'ARP_CODE': customer['erp_code'] if customer else '',
+        'CUSTOMER_NAME': customer['name'] if customer else '',
+        'SALESMAN_CODE': rep['salesman_code'] if rep else '',
+        'SALESMAN_NAME': rep['name'] if rep else '',
+        'COMPANY_NAME': company['name'] if company else '',
+        'DEALER_NAME': dealer['name'] if dealer else '',
+        'PAYMENT_CODE': payment_term,
+        'PAYDEFREF': '67' if payment_term.upper() == 'PEŞİN' else '64',
+        'TOTAL_DISCOUNTED': total_gross,
+        'TOTAL_VAT': total_vat,
+        'TOTAL_GROSS': total_gross,
+        'TOTAL_NET': total_net,
+        'RC_RATE': '',
+        'RC_NET': '',
+        'NOTES1': f"Sevk yeri: {location}" if location else '',
+        'NOTES2': company['name'] if company else '',
+        'NOTES3': f"Nakliye: {shipping_owner}" if shipping_owner else '',
+        'NOTES4': note,
+        'ORDER_STATUS': '4'
+    }
+
+
+def build_order_item_erp_payload(conn, order_payload, item):
+    product = conn.execute('SELECT name, sku, unit FROM inventory WHERE id = ?', (item['productId'],)).fetchone()
+    rep_row = conn.execute('SELECT salesman_code FROM users WHERE id = ?', (order_payload['repId'],)).fetchone() if order_payload.get('repId') else None
+    quantity = safe_float(item.get('quantity'))
+    price = safe_float(item.get('price'))
+    total = quantity * price
+    product_name = product['name'] if product else ''
+    bag_kg = get_bag_kg(product_name)
+    return {
+        **build_common_item_erp_defaults(),
+        'MASTER_CODE': product['sku'] if product else '',
+        'PRODUCT_NAME': product_name if product_name else '',
+        'AUXIL_CODE': product_name.lower() if product_name else '',
+        'QUANTITY': quantity,
+        'PRICE': price,
+        'TOTAL': total,
+        'VAT_RATE': 0,
+        'VAT_AMOUNT': 0,
+        'VAT_BASE': total,
+        'UNIT_CODE': 'ÇUVAL',
+        'UNIT_CONV2': bag_kg,
+        'UNIT_CONV8': bag_kg,
+        'BAG_KG': bag_kg,
+        'TOTAL_KG': quantity * bag_kg,
+        'DUE_DATE': format_order_date(order_payload.get('deliveryDate') or ''),
+        'TOTAL_NET': total,
+        'SALESMAN_CODE': rep_row['salesman_code'] if rep_row else '',
+    }
+
+
 def get_orders(conn):
     orders = rows_to_dicts(conn.execute('''
         SELECT id, company_id as companyId, rep_id as repId, customer_id as customerId,
@@ -129,16 +302,31 @@ def get_orders(conn):
                shipping_owner as shippingOwner, note, review_status as reviewStatus,
                submission_label as submissionLabel, submitted_at as submittedAt,
                reviewed_at as reviewedAt, created_at as createdAt, updated_at as updatedAt,
-               revision_summary as revisionSummary, order_number as orderNumber
+               revision_summary as revisionSummary, order_number as orderNumber,
+               erp_order_number as erpOrderNumber, erp_doc_track_nr as erpDocTrackNr,
+               erp_customer_code as erpCustomerCode, erp_order_date as erpOrderDate,
+               erp_payload as erpPayload
         FROM orders
         ORDER BY datetime(coalesce(submitted_at, updated_at, created_at)) DESC
     ''').fetchall())
     for order in orders:
         order['revisionSummary'] = json.loads(order.get('revisionSummary') or '[]')
+        order['erpPayload'] = coerce_json(order.get('erpPayload'), {})
+        if not order['erpPayload']:
+            order['erpPayload'] = build_order_erp_payload(conn, order, order.get('orderNumber'), order.get('submittedAt', ''))
         order['items'] = rows_to_dicts(conn.execute('''
-            SELECT id, order_id as orderId, product_id as productId, quantity, price
+            SELECT id, order_id as orderId, product_id as productId, quantity, price,
+                   erp_line_ref as erpLineRef, erp_payload as erpPayload
             FROM order_items WHERE order_id = ? ORDER BY rowid ASC
         ''', (order['id'],)).fetchall())
+        for item in order['items']:
+            item['erpPayload'] = coerce_json(item.get('erpPayload'), {})
+            if not item['erpPayload']:
+                item['erpPayload'] = build_order_item_erp_payload(conn, order, item)
+        order['totalKg'] = sum(
+            safe_float(item['quantity']) * safe_float((item.get('erpPayload') or {}).get('BAG_KG') or 50)
+            for item in order['items']
+        )
     return orders
 
 
@@ -184,11 +372,22 @@ def slugify(value):
 
 def replace_order_items(conn, order_id, items):
     conn.execute('DELETE FROM order_items WHERE order_id = ?', (order_id,))
+    order_row = conn.execute('SELECT company_id as companyId, rep_id as repId, customer_id as customerId, delivery_date as deliveryDate FROM orders WHERE id = ?', (order_id,)).fetchone()
+    order_payload = dict(order_row) if order_row else {}
     for item in items:
+        line_payload = build_order_item_erp_payload(conn, order_payload, item) if order_payload else {}
         conn.execute('''
-            INSERT INTO order_items (id, order_id, product_id, quantity, price)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (item.get('id') or make_id('line'), order_id, item['productId'], item['quantity'], item['price']))
+            INSERT INTO order_items (id, order_id, product_id, quantity, price, erp_line_ref, erp_payload)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            item.get('id') or make_id('line'),
+            order_id,
+            item['productId'],
+            item['quantity'],
+            item['price'],
+            item.get('erpLineRef') or '',
+            json.dumps(item.get('erpPayload') or line_payload, ensure_ascii=False)
+        ))
 
 
 def archive_record(conn, entity_type, entity_id, display_name, payload, deleted_at, deleted_by_id='', deleted_by_name=''):
@@ -210,7 +409,8 @@ def archive_record(conn, entity_type, entity_id, display_name, payload, deleted_
 def build_order_snapshot(conn, order_id):
     order = conn.execute('''
         SELECT id, order_number, company_id, rep_id, customer_id, delivery_date, payment_term, shipping_owner,
-               note, review_status, submission_label, submitted_at, reviewed_at, created_at, updated_at, revision_summary
+               note, review_status, submission_label, submitted_at, reviewed_at, created_at, updated_at, revision_summary,
+               erp_order_number, erp_doc_track_nr, erp_customer_code, erp_order_date, erp_payload
         FROM orders WHERE id = ?
     ''', (order_id,)).fetchone()
     if not order:
@@ -220,12 +420,40 @@ def build_order_snapshot(conn, order_id):
     rep = conn.execute('SELECT name, username, region FROM users WHERE id = ?', (order['rep_id'],)).fetchone()
     company = conn.execute('SELECT name FROM companies WHERE id = ?', (order['company_id'],)).fetchone()
     items = rows_to_dicts(conn.execute('''
-        SELECT oi.id, oi.product_id as productId, oi.quantity, oi.price, i.name as productName, i.sku, i.unit
+        SELECT oi.id, oi.product_id as productId, oi.quantity, oi.price, oi.erp_line_ref as erpLineRef,
+               oi.erp_payload as erpPayload, i.name as productName, i.sku, i.unit
         FROM order_items oi
         LEFT JOIN inventory i ON i.id = oi.product_id
         WHERE oi.order_id = ?
         ORDER BY oi.rowid ASC
     ''', (order_id,)).fetchall())
+    for item in items:
+        item['erpPayload'] = coerce_json(item.get('erpPayload'), {})
+        if not item['erpPayload']:
+            item['erpPayload'] = build_order_item_erp_payload(conn, {
+                'companyId': order['company_id'],
+                'repId': order['rep_id'],
+                'customerId': order['customer_id'],
+                'deliveryDate': order['delivery_date'],
+                'paymentTerm': order['payment_term'],
+                'shippingOwner': order['shipping_owner'],
+                'note': order['note'],
+                'reviewStatus': order['review_status']
+            }, item)
+
+    order_erp_payload = coerce_json(order['erp_payload'], {})
+    if not order_erp_payload:
+        order_erp_payload = build_order_erp_payload(conn, {
+            'companyId': order['company_id'],
+            'repId': order['rep_id'],
+            'customerId': order['customer_id'],
+            'deliveryDate': order['delivery_date'],
+            'paymentTerm': order['payment_term'],
+            'shippingOwner': order['shipping_owner'],
+            'note': order['note'],
+            'items': items,
+            'reviewStatus': order['review_status']
+        }, order['order_number'], order['submitted_at'])
 
     return {
         'id': order['id'],
@@ -250,8 +478,13 @@ def build_order_snapshot(conn, order_id):
         'createdAt': order['created_at'],
         'updatedAt': order['updated_at'],
         'revisionSummary': json.loads(order['revision_summary'] or '[]'),
+        'erpOrderNumber': order['erp_order_number'],
+        'erpDocTrackNr': order['erp_doc_track_nr'],
+        'erpCustomerCode': order['erp_customer_code'],
+        'erpOrderDate': order['erp_order_date'],
+        'erpPayload': order_erp_payload,
         'totalAmount': sum(float(item['quantity']) * float(item['price']) for item in items),
-        'totalKg': sum(float(item['quantity']) * 50 for item in items),
+        'totalKg': sum(float(item['quantity']) * safe_float((item.get('erpPayload') or {}).get('BAG_KG') or 50) for item in items),
         'items': items
     }
 
@@ -481,8 +714,9 @@ def restore_deleted_record(conn, deleted_record_id):
         conn.execute('''
             INSERT INTO orders (
               id, company_id, rep_id, customer_id, delivery_date, payment_term, shipping_owner,
-              note, review_status, submission_label, submitted_at, reviewed_at, created_at, updated_at, revision_summary, order_number
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              note, review_status, submission_label, submitted_at, reviewed_at, created_at, updated_at, revision_summary, order_number,
+              erp_order_number, erp_doc_track_nr, erp_customer_code, erp_order_date, erp_payload
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             record['entityId'],
             company_id,
@@ -499,18 +733,25 @@ def restore_deleted_record(conn, deleted_record_id):
             payload.get('createdAt') or payload.get('submittedAt') or '',
             payload.get('updatedAt') or payload.get('submittedAt') or '',
             json.dumps(payload.get('revisionSummary') or [], ensure_ascii=False),
-            payload.get('orderNumber')
+            payload.get('orderNumber'),
+            payload.get('erpOrderNumber') or payload.get('erpPayload', {}).get('NUMBER') or '',
+            payload.get('erpDocTrackNr') or payload.get('erpPayload', {}).get('DOC_TRACK_NR') or '',
+            payload.get('erpCustomerCode') or payload.get('erpPayload', {}).get('ARP_CODE') or payload.get('customerErpCode') or '',
+            payload.get('erpOrderDate') or payload.get('erpPayload', {}).get('DATE') or payload.get('deliveryDate') or '',
+            json.dumps(payload.get('erpPayload') or {}, ensure_ascii=False)
         ))
         for item in payload.get('items', []):
             conn.execute('''
-                INSERT INTO order_items (id, order_id, product_id, quantity, price)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO order_items (id, order_id, product_id, quantity, price, erp_line_ref, erp_payload)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ''', (
                 item.get('id') or make_id('line'),
                 record['entityId'],
                 item.get('productId'),
                 item.get('quantity') or 0,
-                item.get('price') or 0
+                item.get('price') or 0,
+                item.get('erpLineRef') or '',
+                json.dumps(item.get('erpPayload') or {}, ensure_ascii=False)
             ))
         restored_number = payload.get('orderNumber')
         if restored_number:
@@ -551,6 +792,10 @@ def summarize_changes(conn, existing_order, payload):
         elif before and after and (float(before['quantity']) != float(after['quantity']) or float(before['price']) != float(after['price'])):
             changes.append(f'{product_name}: {before["quantity"]}/{before["price"]} -> {after["quantity"]}/{after["price"]}')
     return changes
+
+
+def format_revision_marker(now_value, index):
+    return f"Revize {index} - {format_order_date(now_value)}"
 
 
 def handle_action(payload):
@@ -601,6 +846,30 @@ def handle_action(payload):
             ))
             conn.commit()
             result = {'ok': True}
+        elif action == 'bulk_transfer_customers':
+            from_rep_id = payload.get('fromRepId')
+            to_rep_id = payload.get('toRepId')
+            if not from_rep_id or not to_rep_id:
+                raise ValueError('Kaynak ve hedef satici secilmelidir.')
+            if from_rep_id == to_rep_id:
+                raise ValueError('Kaynak ve hedef satici ayni olamaz.')
+            dealer = conn.execute('SELECT id, city, district FROM dealers WHERE rep_id = ? ORDER BY name LIMIT 1', (to_rep_id,)).fetchone()
+            if not dealer:
+                raise ValueError('Hedef saticiya ait bayi bulunamadi.')
+            customer_count = conn.execute('SELECT COUNT(*) FROM customers WHERE rep_id = ?', (from_rep_id,)).fetchone()[0]
+            conn.execute('''
+                UPDATE customers
+                SET rep_id = ?, dealer_id = ?, city = ?, district = ?
+                WHERE rep_id = ?
+            ''', (
+                to_rep_id,
+                dealer['id'],
+                dealer['city'],
+                dealer['district'],
+                from_rep_id
+            ))
+            conn.commit()
+            result = {'ok': True, 'movedCustomers': customer_count}
         elif action == 'delete_customer':
             deleted_at = payload['now']
             deleted_by_id = payload.get('deletedById', '')
@@ -751,14 +1020,18 @@ def handle_action(payload):
             order_id = make_id('order')
             now = payload['now']
             order_number = get_next_order_number(conn)
+            erp_payload = build_order_erp_payload(conn, payload, order_number, now)
             conn.execute('''
                 INSERT INTO orders (
                   id, company_id, rep_id, customer_id, delivery_date, payment_term, shipping_owner,
-                  note, review_status, submission_label, submitted_at, reviewed_at, created_at, updated_at, revision_summary, order_number
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  note, review_status, submission_label, submitted_at, reviewed_at, created_at, updated_at, revision_summary, order_number,
+                  erp_order_number, erp_doc_track_nr, erp_customer_code, erp_order_date, erp_payload
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (order_id, payload['companyId'], payload['repId'], payload['customerId'], payload.get('deliveryDate', ''),
                   payload.get('paymentTerm', ''), payload.get('shippingOwner', ''), payload.get('note', ''),
-                  'pending', 'Yeni Siparis', now, '', now, now, '[]', order_number))
+                  'pending', 'Yeni Siparis', now, '', now, now, '[]', order_number,
+                  erp_payload.get('NUMBER', ''), erp_payload.get('DOC_TRACK_NR', ''), erp_payload.get('ARP_CODE', ''),
+                  erp_payload.get('DATE', ''), json.dumps(erp_payload, ensure_ascii=False)))
             replace_order_items(conn, order_id, payload.get('items', []))
             conn.commit()
             result = {'ok': True, 'id': order_id, 'orderNumber': order_number}
@@ -767,20 +1040,44 @@ def handle_action(payload):
             if not existing:
                 raise ValueError('Siparis bulunamadi.')
             was_locked = existing['reviewStatus'] in ('reviewed', 'rejected')
-            revision_summary = summarize_changes(conn, existing, payload) if was_locked else existing.get('revisionSummary', [])
             now = payload['now']
+            is_pending_revision = existing.get('submissionLabel') == 'Revize' and existing.get('reviewStatus') == 'pending'
+            revision_summary = existing.get('revisionSummary', []) or []
+            if was_locked or is_pending_revision:
+                new_changes = summarize_changes(conn, existing, payload)
+                if new_changes:
+                    revision_count = sum(
+                        1 for item in revision_summary
+                        if isinstance(item, str) and item.startswith('Revize ')
+                    ) + 1
+                    revision_summary = [
+                        *revision_summary,
+                        format_revision_marker(now, revision_count),
+                        *new_changes,
+                    ]
+            erp_payload = build_order_erp_payload(conn, {
+                **payload,
+                'reviewStatus': 'pending' if (was_locked or is_pending_revision) else existing['reviewStatus']
+            }, existing.get('orderNumber'), now)
             conn.execute('''
                 UPDATE orders
                 SET company_id = ?, rep_id = ?, customer_id = ?, delivery_date = ?, payment_term = ?, shipping_owner = ?,
-                    note = ?, review_status = ?, submission_label = ?, submitted_at = ?, reviewed_at = ?, updated_at = ?, revision_summary = ?
+                    note = ?, review_status = ?, submission_label = ?, submitted_at = ?, reviewed_at = ?, updated_at = ?, revision_summary = ?,
+                    erp_order_number = ?, erp_doc_track_nr = ?, erp_customer_code = ?, erp_order_date = ?, erp_payload = ?
                 WHERE id = ?
             ''', (
                 payload['companyId'], payload['repId'], payload['customerId'], payload.get('deliveryDate', ''),
                 payload.get('paymentTerm', ''), payload.get('shippingOwner', ''), payload.get('note', ''),
-                'pending' if was_locked else existing['reviewStatus'],
-                'Revize' if was_locked else existing.get('submissionLabel', 'Yeni Siparis'),
-                now, '' if was_locked else existing.get('reviewedAt', ''), now,
-                json.dumps(revision_summary, ensure_ascii=False), payload['orderId']
+                'pending' if (was_locked or is_pending_revision) else existing['reviewStatus'],
+                'Revize' if (was_locked or is_pending_revision) else existing.get('submissionLabel', 'Yeni Siparis'),
+                now, '' if (was_locked or is_pending_revision) else existing.get('reviewedAt', ''), now,
+                json.dumps(revision_summary, ensure_ascii=False),
+                erp_payload.get('NUMBER', ''),
+                erp_payload.get('DOC_TRACK_NR', ''),
+                erp_payload.get('ARP_CODE', ''),
+                erp_payload.get('DATE', ''),
+                json.dumps(erp_payload, ensure_ascii=False),
+                payload['orderId']
             ))
             replace_order_items(conn, payload['orderId'], payload.get('items', []))
             conn.commit()
